@@ -168,3 +168,9 @@ AWNG_UpdateDisplays(12345, true); // Werte und gespeicherte Reihenfolge senden
 Den freiwilligen Spendenbutton und QR-Code findest du in der [README](../README.md#entwicklung-unterstützen).
 
 Bei globalen `AWNG_`-Aufrufen alle Parameter angeben: Symcon übernimmt PHP-Standardwerte nicht in die erzeugten Funktionen. Für reine Wertupdates `AWNG_UpdateDisplays(12345, false)` verwenden.
+
+## Kompakte Konfigurationsübersicht
+
+Die Anzeigenliste zeigt Aktiv, Kennung, Inhalt, Quelle/Text, Icon und Dauer. Quelle/Text enthält den Variablennamen, den Laufschrifttext oder das Countdown-Enddatum und wird nach Übernahme aktualisiert. Alle weiteren Einstellungen bleiben über das Zahnrad erreichbar und werden weiterhin gespeichert.
+
+Die häufigen Aktionen Anzeigen jetzt senden, Verbindung testen und Testnachricht stehen nebeneinander. Weitere Knöpfe sind unter Icons laden und verwalten, Übergänge laden sowie Töne laden und testen gruppiert. Hinweise stehen unter Hilfe zur Einrichtung.

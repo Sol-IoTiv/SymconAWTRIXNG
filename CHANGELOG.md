@@ -2,6 +2,13 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.15 – Kompakte Übersicht
+
+- Anzeigenliste auf sechs Übersichtsspalten reduziert; Details bleiben im Bearbeitungsdialog erhalten.
+- Quelle/Text zeigt Variablennamen, Laufschrifttext oder Countdown-Enddatum nach Übernahme.
+- Häufige Aktionen nebeneinander, weitere Werkzeuge einklappbar nach Aufgabe gruppiert.
+- Kurzen Hinweis über der Liste und ausführlichere Hilfe in einem eigenen Abschnitt ergänzt.
+
 ## 0.14 – Bibliotheksstruktur korrigiert
 
 - Bilder von assets nach imgs verschoben. Symcon erkennt imgs als Bilderordner und verlangt dort keine module.json.

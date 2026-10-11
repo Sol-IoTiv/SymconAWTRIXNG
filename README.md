@@ -2,7 +2,7 @@
 
 Mit diesem Modul zeigt eine AWTRIX-NG-Uhr Werte und Meldungen aus IP-Symcon an. Die Verbindung läuft lokal über HTTP; ein MQTT-Broker ist nicht erforderlich. Die Grundfunktionen werden auf einer Ulanzi TC001 im laufenden Betrieb getestet. AWTRIX 3 wird nicht unterstützt.
 
-Aktueller Entwicklungsstand: **0.14** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
+Aktueller Entwicklungsstand: **0.15** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
 
 ## Funktionen
 
@@ -178,3 +178,9 @@ Wenn du die Weiterentwicklung unterstützen möchtest, kannst du das gerne tun:
 ☕ Vielen Dank für deine Unterstützung!
 
 Bei globalen `AWNG_`-Aufrufen alle Parameter angeben: Symcon übernimmt PHP-Standardwerte nicht in die erzeugten Funktionen. Für reine Wertupdates `AWNG_UpdateDisplays(12345, false)` verwenden.
+
+## Kompakte Konfigurationsübersicht
+
+Die Anzeigenliste zeigt Aktiv, Kennung, Inhalt, Quelle/Text, Icon und Dauer. Quelle/Text enthält den Variablennamen, den Laufschrifttext oder das Countdown-Enddatum und wird nach Übernahme aktualisiert. Alle weiteren Einstellungen bleiben über das Zahnrad erreichbar und werden weiterhin gespeichert.
+
+Die häufigen Aktionen Anzeigen jetzt senden, Verbindung testen und Testnachricht stehen nebeneinander. Weitere Knöpfe sind unter Icons laden und verwalten, Übergänge laden sowie Töne laden und testen gruppiert. Hinweise stehen unter Hilfe zur Einrichtung.

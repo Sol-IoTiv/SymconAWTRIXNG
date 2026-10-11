@@ -43,6 +43,7 @@ function curl_error($handle) { return 'test'; }
 function IPS_SemaphoreEnter($key, $timeout) { return true; }
 function IPS_SemaphoreLeave($key) {}
 function IPS_VariableExists($id) { global $values; return array_key_exists($id, $values); }
+function IPS_GetName($id) { return 'Testvariable'; }
 function GetValue($id) { global $values; return $values[$id]; }
 class IPSModule {
     public $InstanceID = 12345;
@@ -110,7 +111,7 @@ $status = 200;
 check($module->LoadIcons() === '2 Icons geladen.', 'Icon loading');
 $module->properties['Displays'] = json_encode([$row]);
 $form = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ERROR);
-check(count($form['elements'][5]['columns'][6]['edit']['options']) === 3, 'Icon selection');
+check(count(array_column($form['elements'][5]['columns'], null, 'name')['Icon']['edit']['options']) === 3, 'Icon selection');
 $keyPattern = '/' . $form['elements'][5]['columns'][1]['edit']['validate'] . '/D';
 foreach (['', ' ', 'mit leerzeichen', 'ä', str_repeat('a', 17)] as $invalidKey) {
     check(preg_match($keyPattern, $invalidKey) === 0, 'Invalid key must be rejected by form');
@@ -282,8 +283,16 @@ $_IPS = ['TARGET' => $module->InstanceID];
 eval($module->timers['Refresh']);
 $form = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ERROR);
 $id = $module->InstanceID;
-foreach ($form['actions'] as $action) {
-    if (in_array($action['caption'], ['Ton probehören', 'Testnachricht', 'Testnachricht mit Ton', 'Anzeigen jetzt senden'], true)) {
+function flattenActions(array $items): array {
+    $result = [];
+    foreach ($items as $item) {
+        $result[] = $item;
+        $result = array_merge($result, flattenActions($item['items'] ?? []));
+    }
+    return $result;
+}
+foreach (flattenActions($form['actions']) as $action) {
+    if (in_array($action['caption'] ?? '', ['Ton probehören', 'Testnachricht', 'Testnachricht mit Ton', 'Anzeigen jetzt senden'], true)) {
         eval($action['onClick']);
     }
 }

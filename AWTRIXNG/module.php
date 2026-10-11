@@ -108,10 +108,27 @@ class AWTRIXNG extends IPSModule
                 $displayOptions[] = ['caption' => $key . ' (Anzeige fehlt)', 'value' => $key];
             }
         }
-        $columns = $this->DisplayColumns($options);
+        $detailColumns = $this->DisplayColumns($options);
+        $byName = array_column($detailColumns, null, 'name');
+        $columns = [];
+        foreach (['Enabled', 'Key', 'Type'] as $name) {
+            $columns[] = $byName[$name];
+        }
+        $columns[1]['caption'] = 'Kennung';
+        $columns[] = ['name' => 'SourceSummary', 'caption' => 'Quelle / Text', 'width' => 'auto', 'save' => false, 'add' => 'Nach Übernahme sichtbar'];
+        foreach (['Icon', 'Duration'] as $name) {
+            $columns[] = $byName[$name];
+        }
+        foreach ($detailColumns as $column) {
+            if (!in_array($column['name'], ['Enabled', 'Key', 'Type', 'Icon', 'Duration'], true)) {
+                $column['visible'] = false;
+                $columns[] = $column;
+            }
+        }
         $displayValues = json_decode($this->ReadPropertyString('Displays'), true) ?: [];
         foreach ($displayValues as &$displayValue) {
             $displayValue['Type'] = $displayValue['Type'] ?? 'variable';
+            $displayValue['SourceSummary'] = $this->DisplaySummary($displayValue);
             $date = $displayValue['EndDate'] ?? '';
             if (is_string($date) && preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $date, $parts)) {
                 $displayValue['EndDate'] = json_encode(['year' => (int) $parts[1], 'month' => (int) $parts[2], 'day' => (int) $parts[3]], JSON_THROW_ON_ERROR);
@@ -127,7 +144,7 @@ class AWTRIXNG extends IPSModule
                     ['type' => 'PasswordTextBox', 'name' => 'Password', 'caption' => 'Passwort']
                 ]],
                 ['type' => 'NumberSpinner', 'name' => 'Interval', 'caption' => 'Alle Anzeigen erneut senden (Sekunden)', 'minimum' => 10, 'maximum' => 3600],
-                ['type' => 'Label', 'caption' => 'Zuerst IP übernehmen, dann Icons laden. Inhalt wählen: Variablenwert, Laufschrift oder Countdown. Nur die zum Inhalt passenden Felder ausfüllen. Countdown: Enddatum im Kalender wählen, Einheit z. B. " Tage". Kennung: 1–16 Buchstaben, Ziffern, _ oder -. Leerzeichen vor Einheiten mit eingeben.'],
+                ['type' => 'Label', 'caption' => 'Anzeige hinzufügen, Inhalt auswählen und übernehmen. Reihenfolge per Drag-and-drop ändern. Details über das Zahnrad bearbeiten.'],
                 ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen (Reihenfolge per Drag-and-drop ändern, danach übernehmen)', 'rowCount' => 8, 'add' => true, 'delete' => true, 'changeOrder' => true, 'columns' => $columns, 'loadValuesFromConfiguration' => false, 'values' => $displayValues, 'form' => 'return json_decode(AWNG_UIDisplayForm($id, $Displays["Type"] ?? "variable"), true);'],
                 ['type' => 'ExpansionPanel', 'caption' => 'Icons abhängig vom Wert', 'items' => [
                     ['type' => 'Label', 'caption' => 'Anzeige aus der Liste auswählen. Neue oder geänderte Anzeigen zuerst übernehmen. Es gilt die kleinste passende Obergrenze (Wert kleiner oder gleich). Oberhalb aller Grenzen gilt das normale Icon der Anzeige.'],
@@ -165,24 +182,60 @@ class AWTRIXNG extends IPSModule
                 ]]
             ],
             'actions' => [
-                ['type' => 'Button', 'caption' => 'Verbindung testen', 'onClick' => 'echo AWNG_TestConnection($id);'],
-                ['type' => 'Button', 'caption' => 'Übergänge von Uhr laden', 'onClick' => 'echo AWNG_LoadTransitions($id);'],
-                ['type' => 'Button', 'caption' => 'Icon-Galerie öffnen (TC001)', 'link' => true, 'onClick' => 'echo "https://awtrix.de/icons?device=esp32&panel=32x8&caps=audio.rtttl,sensors.light";'],
-                ['type' => 'Button', 'caption' => 'Icons auf der Uhr verwalten', 'link' => true, 'onClick' => 'echo AWNG_GetIconsURL($id);'],
-                ['type' => 'Label', 'caption' => 'In der Galerie anmelden, Icon öffnen und mit Send to AWTRIX auf die Uhr übertragen. Danach hier Icons von Uhr laden und in der Anzeigenzeile auswählen. Änderungen vorher übernehmen.'],
-                ['type' => 'Button', 'caption' => 'Icons von Uhr laden', 'onClick' => 'echo AWNG_LoadIcons($id);'],
-                ['type' => 'Button', 'caption' => 'Melodien von Uhr laden', 'onClick' => 'echo AWNG_LoadSounds($id);'],
-                ['type' => 'Button', 'caption' => 'Ton probehören', 'onClick' => 'AWNG_PlaySound($id, "");'],
-                ['type' => 'Button', 'caption' => 'Ton stoppen', 'onClick' => 'AWNG_StopSound($id);'],
-                ['type' => 'Button', 'caption' => 'Testnachricht mit Ton', 'onClick' => 'AWNG_NotifyWithSound($id, "Hallo von Symcon!", "", 5);'],
-                ['type' => 'Button', 'caption' => 'Testnachricht', 'onClick' => 'AWNG_Notify($id, "Hallo von Symcon!", "", 5);'],
-                ['type' => 'Button', 'caption' => 'Anzeigen jetzt senden', 'onClick' => 'AWNG_UpdateDisplays($id, true);'],
+                ['type' => 'RowLayout', 'items' => [
+                    ['type' => 'Button', 'caption' => 'Anzeigen jetzt senden', 'onClick' => 'AWNG_UpdateDisplays($id, true);'],
+                    ['type' => 'Button', 'caption' => 'Verbindung testen', 'onClick' => 'echo AWNG_TestConnection($id);'],
+                    ['type' => 'Button', 'caption' => 'Testnachricht', 'onClick' => 'AWNG_Notify($id, "Hallo von Symcon!", "", 5);']
+                ]],
+                ['type' => 'ExpansionPanel', 'caption' => 'Icons laden und verwalten', 'items' => [
+                    ['type' => 'Label', 'caption' => 'Galerie öffnen, Icon mit Send to AWTRIX übertragen und anschließend Icons von Uhr laden. Änderungen vorher übernehmen.'],
+                    ['type' => 'RowLayout', 'items' => [
+                        ['type' => 'Button', 'caption' => 'Icon-Galerie öffnen (TC001)', 'link' => true, 'onClick' => 'echo "https://awtrix.de/icons?device=esp32&panel=32x8&caps=audio.rtttl,sensors.light";'],
+                        ['type' => 'Button', 'caption' => 'Icons auf der Uhr verwalten', 'link' => true, 'onClick' => 'echo AWNG_GetIconsURL($id);'],
+                        ['type' => 'Button', 'caption' => 'Icons von Uhr laden', 'onClick' => 'echo AWNG_LoadIcons($id);']
+                    ]]
+                ]],
+                ['type' => 'ExpansionPanel', 'caption' => 'Übergänge laden', 'items' => [
+                    ['type' => 'Button', 'caption' => 'Übergänge von Uhr laden', 'onClick' => 'echo AWNG_LoadTransitions($id);']
+                ]],
+                ['type' => 'ExpansionPanel', 'caption' => 'Töne laden und testen', 'items' => [
+                    ['type' => 'RowLayout', 'items' => [
+                        ['type' => 'Button', 'caption' => 'Melodien von Uhr laden', 'onClick' => 'echo AWNG_LoadSounds($id);'],
+                        ['type' => 'Button', 'caption' => 'Ton probehören', 'onClick' => 'AWNG_PlaySound($id, "");'],
+                        ['type' => 'Button', 'caption' => 'Ton stoppen', 'onClick' => 'AWNG_StopSound($id);'],
+                        ['type' => 'Button', 'caption' => 'Testnachricht mit Ton', 'onClick' => 'AWNG_NotifyWithSound($id, "Hallo von Symcon!", "", 5);']
+                    ]]
+                ]],
+                ['type' => 'ExpansionPanel', 'caption' => 'Hilfe zur Einrichtung', 'items' => [
+                    ['type' => 'Label', 'caption' => 'Zuerst die IP-Adresse übernehmen. Kennung: 1–16 Buchstaben, Ziffern, _ oder -. Einheiten mit gewünschtem Leerzeichen eintragen, z. B. " °C". Countdown-Datum im Kalender wählen. Quelle/Text in der Übersicht wird nach Übernahme aktualisiert.'],
+                    ['type' => 'Label', 'caption' => 'Wertänderungen werden sofort gesendet. Das zusätzliche Sendeintervall stellt Anzeigen nach einem Uhrneustart wieder her und aktualisiert den Tagescountdown.']
+                ]]
             ],
             'status' => [
                 ['code' => 102, 'icon' => 'active', 'caption' => 'Bereit'],
                 ['code' => 201, 'icon' => 'error', 'caption' => 'Konfiguration oder Verbindung prüfen – siehe Letzter Fehler']
             ]
         ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    }
+
+    private function DisplaySummary(array $row): string
+    {
+        $type = $row['Type'] ?? 'variable';
+        if ($type === 'text') {
+            return (string) ($row['Prefix'] ?? '') . (string) ($row['Text'] ?? '') . (string) ($row['Suffix'] ?? '');
+        }
+        if ($type === 'countdown') {
+            $date = $row['EndDate'] ?? '';
+            if (is_string($date) && substr(ltrim($date), 0, 1) === '{') {
+                $date = json_decode($date, true);
+            }
+            if (is_array($date)) {
+                $date = sprintf('%04d-%02d-%02d', $date['year'] ?? 0, $date['month'] ?? 0, $date['day'] ?? 0);
+            }
+            return 'Bis ' . (string) $date;
+        }
+        $variableID = (int) ($row['VariableID'] ?? 0);
+        return IPS_VariableExists($variableID) ? IPS_GetName($variableID) : 'Variable fehlt';
     }
 
     private function DisplayColumns(array $options): array

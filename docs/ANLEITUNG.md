@@ -174,3 +174,22 @@ Bei globalen `AWNG_`-Aufrufen alle Parameter angeben: Symcon übernimmt PHP-Stan
 Die Anzeigenliste zeigt Aktiv, Kennung, Inhalt, Quelle/Text, Icon und Dauer. Quelle/Text enthält den Variablennamen, den Laufschrifttext oder das Countdown-Enddatum und wird nach Übernahme aktualisiert. Alle weiteren Einstellungen bleiben über das Zahnrad erreichbar und werden weiterhin gespeichert.
 
 Die häufigen Aktionen Anzeigen jetzt senden, Verbindung testen und Testnachricht stehen nebeneinander. Weitere Knöpfe sind unter Icons laden und verwalten, Übergänge laden sowie Töne laden und testen gruppiert. Hinweise stehen unter Hilfe zur Einrichtung.
+# Akkudaten und Ladeautomatik
+
+Ab Version 0.20b legt die Instanz folgende Statusvariablen an:
+
+| Variable | Bedeutung |
+| --- | --- |
+| Akkustand | Ladestand in Prozent (`BatteryPercent`) |
+| Batteriespannung | Spannung in Volt (`BatteryVoltage`) |
+| Akku schwach | Warnung der Uhr (`LowBattery`) |
+| Akkudaten aktuell | Letzte Abfrage hat gültige Akkudaten geliefert (`BatteryDataValid`) |
+
+Die Werte werden beim Übernehmen und danach alle 60 Sekunden über `/api/v1/device` gelesen, unabhängig vom Sendeintervall der Anzeigen. Eine sofortige Abfrage ist mit `AWNG_UpdateDeviceStatus(InstanzID)` möglich.
+
+Bei Verbindungsfehlern oder fehlenden Akkudaten bleiben die letzten Messwerte erhalten; „Akkudaten aktuell“ wird ausgeschaltet. Eine Ladeautomatik sollte nur bei aktuellen Daten schalten. Am besten auf den Wechsel von „Akkudaten aktuell“ zu wahr reagieren, nachdem alle Messwerte übernommen wurden.
+
+Beispiel einer selbst gewählten Hysterese: Unter 20 Prozent das Netzteil einschalten, ab 80 Prozent ausschalten, dazwischen den bisherigen Schaltzustand beibehalten. Der Schaltaktor wird über eigene Symcon-Ereignisse gesteuert. Diese Schwellen sind ein Automatisierungsbeispiel, keine Vorgabe zur Akkupflege.
+
+Quelle der Messwerte: [AWTRIX NG Device state](https://blueforcer.github.io/awtrix-ng/esp32/reference/device/). Die Firmware liefert eine Schätzung des Ladestands. Geräte ohne passende Batteriehardware liefern diese Felder nicht.
+

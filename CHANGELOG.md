@@ -2,6 +2,12 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.20b – Akkustand als Statusvariable
+
+- Akkustand, Batteriespannung, Akkuwarnung und Gültigkeit der Akkudaten als Statusvariablen bereitstellen.
+- Akkudaten beim Übernehmen und anschließend alle 60 Sekunden unabhängig vom Anzeigenversand abfragen.
+- Bei fehlenden oder ungültigen Daten sowie Verbindungsfehlern alte Messwerte erhalten und als nicht aktuell kennzeichnen.
+
 ## 0.19b – Aktualisierung bestehender Instanzen reparieren
 
 - Versand bei späteren PHP-Aufrufen ohne erneutes Create nicht mehr durch voreingestellte Sperrflags abbrechen.

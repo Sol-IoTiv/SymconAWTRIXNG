@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 class AWTRIXNG extends IPSModule
 {
-    private bool $instanceAvailable = false;
-    private bool $acceptVariableUpdates = false;
+    // PHP objects can be reconstructed for calls without running Create again.
+    // These flags only suppress work during ApplyChanges and after Destroy.
+    private bool $instanceAvailable = true;
+    private bool $acceptVariableUpdates = true;
     public function Create()
     {
         parent::Create();

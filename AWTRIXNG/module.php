@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 class AWTRIXNG extends IPSModule
 {
+    private bool $instanceAvailable = false;
+    private bool $acceptVariableUpdates = false;
     public function Create()
     {
         parent::Create();
@@ -33,11 +35,14 @@ class AWTRIXNG extends IPSModule
         $this->RegisterAttributeString('Managed', '{}');
         $this->RegisterTimer('Refresh', 0, 'AWNG_UpdateDisplays($_IPS["TARGET"], false);');
         $this->RegisterVariableString('LastError', 'Letzter Fehler', '', 0);
+        $this->instanceAvailable = true;
     }
 
     public function ApplyChanges()
     {
+        $this->acceptVariableUpdates = false;
         parent::ApplyChanges();
+        $this->instanceAvailable = true;
         foreach ($this->GetMessageList() as $sender => $messages) {
             if (in_array(VM_UPDATE, $messages, true)) {
                 $this->UnregisterMessage((int) $sender, VM_UPDATE);
@@ -57,12 +62,21 @@ class AWTRIXNG extends IPSModule
             $this->SetTimerInterval('Refresh', 0);
             $this->Failure($e);
         }
+        $this->acceptVariableUpdates = true;
         $this->ReloadForm();
+    }
+
+    public function Destroy()
+    {
+        // Only local state here: the Symcon interface may already be detached.
+        $this->acceptVariableUpdates = false;
+        $this->instanceAvailable = false;
+        parent::Destroy();
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
     {
-        if ($Message === VM_UPDATE && !empty($Data[1])) {
+        if ($this->instanceAvailable && $this->acceptVariableUpdates && $Message === VM_UPDATE && !empty($Data[1])) {
             $this->UpdateDisplays();
         }
     }
@@ -426,10 +440,17 @@ class AWTRIXNG extends IPSModule
 
     public function UpdateDisplays(bool $SyncOrder = false): bool
     {
-        if (!IPS_SemaphoreEnter('AWNG_' . $this->InstanceID, 100)) {
+        if (!$this->instanceAvailable) {
+            return false;
+        }
+        $semaphore = 'AWNG_' . $this->InstanceID;
+        if (!IPS_SemaphoreEnter($semaphore, 100)) {
             return false;
         }
         try {
+            if (!$this->instanceAvailable) {
+                return false;
+            }
             $base = $this->BaseURL();
             $rows = $this->Rows();
             $rules = $this->IconRules();
@@ -497,7 +518,7 @@ class AWTRIXNG extends IPSModule
             $this->Failure($e);
             return false;
         } finally {
-            IPS_SemaphoreLeave('AWNG_' . $this->InstanceID);
+            IPS_SemaphoreLeave($semaphore);
         }
     }
 

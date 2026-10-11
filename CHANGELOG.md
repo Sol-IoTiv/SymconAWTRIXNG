@@ -2,6 +2,13 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.16 – Aktualisierung beim Entladen absichern
+
+- Wertänderungen während Konfigurationsübernahme und nach Destroy nicht verarbeiten.
+- Timer-Aufrufe an bereits entladene Modulobjekte ohne Instanzzugriff beenden.
+- Semaphore-Namen vor dem Warten erfassen und beim Freigeben ohne erneuten Zugriff auf InstanceID verwenden.
+- Regressionstest für verspätete Wert- und Timerereignisse nach dem Entladen ergänzt.
+
 ## 0.15 – Kompakte Übersicht
 
 - Anzeigenliste auf sechs Übersichtsspalten reduziert; Details bleiben im Bearbeitungsdialog erhalten.

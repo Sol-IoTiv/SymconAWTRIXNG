@@ -55,6 +55,7 @@ class IPSModule {
     public $formUpdates = [];
     public function Create() {}
     public function ApplyChanges() {}
+    public function Destroy() {}
     protected function RegisterPropertyString($name, $value) { $this->properties[$name] = $value; }
     protected function RegisterPropertyInteger($name, $value) { $this->properties[$name] = $value; }
     protected function RegisterPropertyBoolean($name, $value) { $this->properties[$name] = $value; }
@@ -334,4 +335,13 @@ foreach ($files as $file) {
     }
     check(is_file($root . '/' . $parts[0] . '/module.json'), 'Invalid library folder: ' . $parts[0]);
 }
+$module->properties['Displays'] = '[]';
+$module->properties['ManageAudio'] = false;
+$module->properties['ManageAppearance'] = false;
+$module->ApplyChanges();
+$module->Destroy();
+$before = count($requests);
+$module->MessageSink(time(), 22180, VM_UPDATE, [42, true]);
+check(!$module->UpdateDisplays(), 'Unloaded instance must reject timer updates');
+check(count($requests) === $before, 'Unloaded instance must not process queued value changes');
 echo "All module tests passed.\n";

@@ -17,12 +17,16 @@ Die Suche läuft auf dem Symcon-Server und verwendet das [AWTRIX-NG-Discovery-Pr
 3. IP-Adresse oder Hostname der bereits ins WLAN eingebundenen Uhr eintragen, beispielsweise `192.168.98.50`. Kein `http://` und kein Pfad. Optional ist ein Port möglich.
 4. Falls in AWTRIX ein Webserver-Login aktiviert ist, dessen Benutzername und Passwort eintragen. Änderungen **übernehmen**.
 5. **Verbindung testen** und **Testnachricht** verwenden.
-6. Icons im Icons-Bereich der AWTRIX-Weboberfläche installieren. Danach im Symcon-Modul **Icons von Uhr laden** drücken. Die Auswahl enthält die gespeicherten Icons; eine Bildvorschau oder ein Download aus dem Hub ist noch nicht implementiert.
+6. **Icon-Galerie öffnen (TC001)** drücken. Der Knopf öffnet den AWTRIX Hub mit dem Filter ESP32 / 32×8. Im Hub anmelden, ein Icon öffnen und **Send to AWTRIX** verwenden. Dabei die richtige Uhr auswählen bzw. verbinden. Alternativ **Icons auf der Uhr verwalten** öffnen und dort Icons hinzufügen. Danach im Symcon-Modul **Icons von Uhr laden** drücken. Die Auswahl enthält die gespeicherten Icons; eine Bildvorschau ist noch nicht implementiert.
 7. In **Anzeigen** eine Zeile hinzufügen: eindeutige Kennung (z. B. `aussen`), Variable, Icon, Nachkommastellen, Einheit und Dauer auswählen. Wieder **übernehmen**.
 
 Beispiel: Variable `22180`, Kennung `aussen`, Nachkommastellen `1`, Einheit ` °C`, Dauer `5`. Der Wert 18.4 erscheint als `18,4 °C`. Einheiten werden exakt angehängt; gewünschte Leerzeichen daher mit eingeben. Boolesche Variablen erscheinen als Ein/Aus, Stringvariablen unverändert. Variablenprofile werden nicht automatisch übernommen.
 
 ## Verhalten
+
+### AWTRIX-Hub-Galerie
+
+Die Galerie wird als externe Webseite geöffnet und nicht in das Symcon-Formular eingebettet. Der Hub übernimmt Anmeldung, Auswahl und Übertragung auf die Uhr. Symcon speichert dafür weder Hub-Passwort noch Hub-Schlüssel. Der Browser muss die Uhr im lokalen Netzwerk erreichen können. Die im Modul gespeicherten HTTP-Zugangsdaten werden nicht an den Hub übergeben. Der Galerie-Knopf ist für die TC001 (ESP32, 32×8) gefiltert. Nach erfolgreichem Import **Icons von Uhr laden** drücken; das lädt das Formular neu, deshalb vorher Änderungen übernehmen.
 
 ### Standardanzeigen auswählen
 

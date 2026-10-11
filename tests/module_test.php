@@ -64,6 +64,7 @@ function check($condition, $message) {
 $module = new AWTRIXNG();
 $module->Create();
 $module->properties['Host'] = '192.168.98.50';
+check($module->GetIconsURL() === 'http://192.168.98.50/#/icons', 'Icon management URL');
 $row = ['Enabled' => true, 'Key' => 'aussen', 'VariableID' => 22180, 'Suffix' => ' °C'];
 $module->properties['Displays'] = json_encode([$row]);
 check($module->UpdateDisplays(), 'Initial push failed');

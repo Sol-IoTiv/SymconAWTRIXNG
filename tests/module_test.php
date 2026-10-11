@@ -10,13 +10,17 @@ $values = [22180 => 18.4];
 $status = 200;
 $apps = [];
 $settings = [];
+$device = ['batteryPercent' => 75];
 $capabilities = ['transitions' => ['Fade', 'Rain'], 'sensors' => ['light' => true], 'audio' => ['rtttl' => true]];
 function curl_init($url) { return (object) ['url' => $url, 'options' => []]; }
 function curl_setopt_array($handle, $options) { $handle->options = $options; }
 function curl_setopt($handle, $key, $value) { $handle->options[$key] = $value; }
 function curl_exec($handle) {
-    global $requests, $apps, $settings, $capabilities;
+    global $requests, $apps, $settings, $capabilities, $device;
     $requests[] = [$handle->options[CURLOPT_CUSTOMREQUEST], $handle->url, isset($handle->options[CURLOPT_POSTFIELDS]) ? json_decode($handle->options[CURLOPT_POSTFIELDS], true) : null];
+    if (substr($handle->url, -14) === '/api/v1/device') {
+        return json_encode($device);
+    }
     if (strpos($handle->url, '/files?') !== false) {
         return '{"files":[{"name":"sun.gif","size":42},{"name":"temp.jpg","size":20}]}';
     }
@@ -55,6 +59,7 @@ class IPSModule {
     public $formUpdates = [];
     public function Create() {}
     public function ApplyChanges() {}
+    protected function UnregisterVariable($ident) { unset($this->variables[$ident]); }
     public function Destroy() {}
     protected function RegisterPropertyString($name, $value) { $this->properties[$name] = $value; }
     protected function RegisterPropertyInteger($name, $value) { $this->properties[$name] = $value; }
@@ -62,6 +67,10 @@ class IPSModule {
     protected function RegisterAttributeString($name, $value) { $this->attributes[$name] = $value; }
     protected function RegisterTimer($name, $value, $script) { $this->timers[$name] = $script; }
     protected function RegisterVariableString($ident, $name, $profile, $position) {}
+    protected function RegisterVariableInteger($ident, $name, $profile, $position) {}
+    protected function RegisterVariableFloat($ident, $name, $profile, $position) {}
+    protected function RegisterVariableBoolean($ident, $name, $profile, $position) {}
+    protected function SendDebug($message, $data, $format) {}
     protected function ReadPropertyString($name) { return $this->properties[$name]; }
     protected function ReadPropertyInteger($name) { return $this->properties[$name]; }
     protected function ReadPropertyBoolean($name) { return $this->properties[$name]; }
@@ -359,4 +368,19 @@ $before = count($requests);
 $module->MessageSink(time(), 22180, VM_UPDATE, [42, true]);
 check(!$module->UpdateDisplays(), 'Unloaded instance must reject timer updates');
 check(count($requests) === $before, 'Unloaded instance must not process queued value changes');
+$status = 200;
+check($fresh->UpdateDeviceStatus(), 'Battery polling on reconstructed object');
+check($fresh->variables['BatteryPercent'] === 75, 'Battery percentage');
+check($fresh->variables['BatteryDataValid'] === true, 'Valid battery sample');
+$device = ['batteryPercent' => 0];
+check($fresh->UpdateDeviceStatus(), 'Zero battery must be valid');
+check($fresh->variables['BatteryPercent'] === 0, 'Low battery sample');
+$device = [];
+check(!$fresh->UpdateDeviceStatus(), 'Missing battery hardware must invalidate sample');
+check(!$fresh->variables['BatteryDataValid'], 'Missing battery validity');
+check($fresh->variables['BatteryPercent'] === 0, 'Missing data must preserve previous sample');
+$status = 503;
+check(!$fresh->UpdateDeviceStatus(), 'HTTP failure must invalidate sample');
+check(!$fresh->variables['BatteryDataValid'], 'HTTP error validity');
+check(!$module->UpdateDeviceStatus(), 'Destroyed instance must not poll battery');
 echo "All module tests passed.\n";

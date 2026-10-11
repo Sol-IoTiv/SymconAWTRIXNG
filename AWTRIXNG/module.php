@@ -37,6 +37,9 @@ class AWTRIXNG extends IPSModule
         $this->RegisterAttributeString('Managed', '{}');
         $this->RegisterTimer('Refresh', 0, 'AWNG_UpdateDisplays($_IPS["TARGET"]);');
         $this->RegisterVariableString('LastError', 'Letzter Fehler', '', 0);
+        $this->RegisterVariableInteger('BatteryPercent', 'Akkustand', '~Battery.100', 10);
+        $this->RegisterVariableBoolean('BatteryDataValid', 'Akkudaten aktuell', '~Switch', 13);
+        $this->RegisterTimer('DeviceStatus', 0, 'AWNG_UpdateDeviceStatus($_IPS["TARGET"]);');
         $this->instanceAvailable = true;
     }
 
@@ -44,6 +47,8 @@ class AWTRIXNG extends IPSModule
     {
         $this->acceptVariableUpdates = false;
         parent::ApplyChanges();
+        $this->UnregisterVariable('BatteryVoltage');
+        $this->UnregisterVariable('LowBattery');
         $this->instanceAvailable = true;
         foreach ($this->GetMessageList() as $sender => $messages) {
             if (in_array(VM_UPDATE, $messages, true)) {
@@ -52,6 +57,9 @@ class AWTRIXNG extends IPSModule
         }
         try {
             $this->BaseURL();
+            $this->SetValue('BatteryDataValid', false);
+            $this->SetTimerInterval('DeviceStatus', 60000);
+            $this->UpdateDeviceStatus();
             foreach ($this->Rows() as $row) {
                 if ($row['Enabled'] && $row['Type'] === 'variable') {
                     $this->RegisterMessage((int) $row['VariableID'], VM_UPDATE);
@@ -62,6 +70,8 @@ class AWTRIXNG extends IPSModule
             $this->SyncDisplays();
         } catch (Throwable $e) {
             $this->SetTimerInterval('Refresh', 0);
+            $this->SetTimerInterval('DeviceStatus', 0);
+            $this->SetValue('BatteryDataValid', false);
             $this->Failure($e);
         }
         $this->acceptVariableUpdates = true;
@@ -315,6 +325,31 @@ class AWTRIXNG extends IPSModule
     {
         foreach ($this->DisplayFieldTypes() as $name => $type) {
             $this->UpdateFormField($name, 'visible', $Type === $type);
+        }
+    }
+
+    public function UpdateDeviceStatus(): bool
+    {
+        if (!$this->instanceAvailable) {
+            return false;
+        }
+        try {
+            $data = json_decode($this->Request('GET', '/api/v1/device'), true, 512, JSON_THROW_ON_ERROR);
+            if (!is_array($data)
+                || !isset($data['batteryPercent'])
+                || !is_numeric($data['batteryPercent'])
+                || $data['batteryPercent'] < 0 || $data['batteryPercent'] > 100) {
+                throw new RuntimeException('Keine gültigen Akkudaten von der Uhr erhalten.');
+            }
+            // Publish validity last so automations can use the complete sample.
+            $this->SetValue('BatteryDataValid', false);
+            $this->SetValue('BatteryPercent', (int) $data['batteryPercent']);
+            $this->SetValue('BatteryDataValid', true);
+            return true;
+        } catch (Throwable $e) {
+            $this->SetValue('BatteryDataValid', false);
+            $this->SendDebug('Akkudaten', $e->getMessage(), 0);
+            return false;
         }
     }
 

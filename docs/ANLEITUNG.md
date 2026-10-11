@@ -8,11 +8,11 @@ In der Symcon-Modulverwaltung die Bibliothek `https://github.com/Sol-IoTiv/Symco
 
 ## 2. Uhr verbinden
 
-Entweder **AWTRIX NG Gerätesuche** anlegen, suchen und aus der Ergebnisliste eine Geräteinstanz erstellen, oder direkt eine Instanz **AWTRIX NG** erstellen und die IP-Adresse eingeben. Bei geändertem Webport beispielsweise `192.168.1.50:8080` verwenden. Kein `http://` und keinen Pfad eingeben.
+Eine Instanz **AWTRIX NG** erstellen und die IP-Adresse oder den Hostnamen der Uhr eingeben. Bei geändertem Webport beispielsweise `192.168.1.50:8080` verwenden. Kein `http://` und keinen Pfad eingeben. Die IP-Adresse erscheint beim Start auf dem Display und ist auch in der Geräteliste des Routers zu finden.
 
 Falls die Uhr eine Webserver-Anmeldung verlangt, Benutzername und Passwort im Abschnitt Anmeldung eintragen. **Übernehmen**, dann **Verbindung testen** und **Testnachricht** drücken.
 
-Die Suche läuft auf dem Symcon-Server. Sie sendet eine UDP-Anfrage auf Port 4210 und lauscht zwei Sekunden auf Port 4211. Bei ausbleibenden Treffern kann die gezielte Broadcast-Adresse des eigenen Subnetzes helfen. Broadcasts über Gastnetz- oder VLAN-Grenzen sind häufig blockiert; dann die IP manuell eintragen.
+Die frühere Gerätesuche ist ab 0.8 entfernt. Falls bereits eine Instanz **AWTRIX NG Gerätesuche** angelegt wurde, diese vor dem Modulupdate in Symcon löschen. Die Geräteinstanz **AWTRIX NG** mit den konfigurierten Anzeigen bleibt bestehen.
 
 ## 3. Anzeigen hinzufügen
 

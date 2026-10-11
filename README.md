@@ -2,11 +2,11 @@
 
 Mit diesem Modul zeigt eine AWTRIX-NG-Uhr Werte und Meldungen aus IP-Symcon an. Die Verbindung läuft lokal über HTTP; ein MQTT-Broker ist nicht erforderlich. Die Grundfunktionen werden auf einer Ulanzi TC001 im laufenden Betrieb getestet. AWTRIX 3 wird nicht unterstützt.
 
-Aktueller Entwicklungsstand: **0.7** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. Die automatische PHP-Testsuite und die Gerätesuche sind noch nicht abschließend geprüft. Es gibt noch keinen freigegebenen Stable-Release.
+Aktueller Entwicklungsstand: **0.8** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. Die automatische PHP-Testsuite ist noch nicht abschließend geprüft. Es gibt noch keinen freigegebenen Stable-Release.
 
 ## Funktionen
 
-- Gerätesuche im lokalen Netz oder manuelle Eingabe von IP-Adresse und Port.
+- Einrichtung über IP-Adresse oder Hostname, optional mit Webport.
 - Symcon-Variablen mit Text, Einheit, Nachkommastellen, Farbe, Icon und Anzeigedauer.
 - Aktualisierung bei Wertänderungen und regelmäßig; veraltete Werte werden markiert.
 - Standardanzeigen einzeln auswählen: Uhrzeit, Datum, Temperatur, Luftfeuchtigkeit und Batterie.
@@ -29,13 +29,9 @@ Neue Änderungen werden nur auf `dev` hochgeladen. Übernahmen nach `beta-stagin
 
 ## Einrichtung
 
-### Mit Gerätesuche
+Ab Version 0.8 ist die Discovery-Suche entfernt. Bereits angelegte Instanzen **AWTRIX NG Gerätesuche** vor dem Modulupdate löschen; die Geräteinstanz **AWTRIX NG** beibehalten.
 
-Instanz **AWTRIX NG Gerätesuche** erstellen und **Geräte suchen** drücken. In der Ergebnisliste die Uhr auswählen und die zugehörige AWTRIX-NG-Instanz erstellen. Die IP-Adresse wird übernommen. Danach mit Verbindungstest, Icon-Auswahl und Anzeigen fortfahren.
-
-Die Suche läuft auf dem Symcon-Server und verwendet das [AWTRIX-NG-Discovery-Protokoll](https://blueforcer.github.io/awtrix-ng/esp32/getting-started/discovery/): eine UDP-Broadcast-Anfrage an Port 4210, Antworten für zwei Sekunden auf Port 4211. Sie verändert keine Einstellungen der Uhr. Bei mehreren Netzwerkkarten kann eine gezielte Broadcast-Adresse nötig sein (zum Beispiel `192.168.98.255` bei einem Netz `192.168.98.0/24`). Eine geänderte Broadcast-Adresse zuerst übernehmen. Broadcasts funktionieren üblicherweise nicht über VLAN-Grenzen oder Gastnetze; die manuelle IP-Eingabe bleibt verfügbar. Port 4211 muss frei sein. Gefundene Geräte werden anhand ihrer Discovery-Antwort gelistet; der HTTP-Verbindungstest erfolgt anschließend in der Geräteinstanz.
-
-### Mit manueller IP-Adresse
+### Mit IP-Adresse oder Hostname
 
 1. In der Symcon-Modulverwaltung `https://github.com/Sol-IoTiv/SymconAWTRIXNG` hinzufügen und für die aktuellen Funktionen den Branch **`dev`** auswählen. Anschließend bei Änderungen in der Modulverwaltung aktualisieren.
 2. Instanz vom Typ **AWTRIX NG** erstellen.
@@ -104,7 +100,7 @@ AWNG_UpdateDisplays(12345);
 
 ## Technische Referenz
 
-IP-Symcon ab 7.0 mit PHP/cURL. Verwendet die AWTRIX-NG-API v1: `GET /api/v1/version`, `GET /api/v1/apps`, `GET /api/v1/files?dir=/ICONS`, `PUT /api/v1/apps/pushed/{name}`, `PUT /api/v1/apps/{name}/enabled`, `PUT /api/v1/apps/order`, `DELETE /api/v1/apps/{name}` und `POST /api/v1/notifications`. Für die Gerätesuche werden zusätzlich UDP-Ports 4210 und 4211 verwendet.
+IP-Symcon ab 7.0 mit PHP/cURL. Verwendet die AWTRIX-NG-API v1: `GET /api/v1/version`, `GET /api/v1/apps`, `GET /api/v1/files?dir=/ICONS`, `PUT /api/v1/apps/pushed/{name}`, `PUT /api/v1/apps/{name}/enabled`, `PUT /api/v1/apps/order`, `DELETE /api/v1/apps/{name}` und `POST /api/v1/notifications`.
 
 - [AWTRIX NG Dokumentation](https://blueforcer.github.io/awtrix-ng/esp32/)
 - [HTTP API](https://blueforcer.github.io/awtrix-ng/esp32/reference/http/)

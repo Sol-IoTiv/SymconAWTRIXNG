@@ -2,6 +2,13 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.8 – Einrichtung über IP-Adresse
+
+- Discovery-Modul wegen unzuverlässiger Gerätesuche entfernt.
+- Einrichtung ausschließlich über IP-Adresse oder Hostname der Uhr.
+- Zugehörige Discovery-Tests und Workflow-Prüfung entfernt; Dokumentation angepasst.
+- Bereits angelegte Discovery-Instanzen vor dem Modulupdate in Symcon löschen. Bestehende AWTRIX-NG-Geräteinstanzen bleiben erhalten.
+
 ## 0.7 – Reihenfolge
 
 - Anzeigen in der Symcon-Liste per Drag-and-drop verschieben.

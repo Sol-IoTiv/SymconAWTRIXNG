@@ -128,7 +128,6 @@ check($module->UpdateDisplays() && count($requests) === $before + 1, 'Unchanged 
 $module->properties['ManageBuiltins'] = false;
 $before = count($requests);
 check($module->UpdateDisplays() && count($requests) === $before, 'Disabled management must leave clock alone');
-require __DIR__ . '/../AWTRIXNGDiscovery/module.php';
 $module->properties['Displays'] = json_encode([array_merge($row, ['Icon' => 'pv'])]);
 $module->properties['IconRules'] = json_encode([
     ['Key' => 'aussen', 'Maximum' => 0, 'Icon' => 'no_pv']
@@ -168,10 +167,4 @@ check($module->UpdateDisplays(true), 'Reordering failed');
 $orderRequest = end($requests);
 check($orderRequest[2]['order'] === ['Time', 'ips_12345_second', 'ips_12345_first', 'external'], 'Order must follow table and preserve external apps');
 check($orderRequest[2]['disabled'] === ['external'], 'External disabled state must be preserved');
-$parser = new ReflectionMethod(AWTRIXNGDiscovery::class, 'ParseReply');
-$parser->setAccessible(true);
-check($parser->invoke(null, 'kitchen-clock', '192.168.98.71:4210') === ['Name' => 'kitchen-clock', 'Host' => '192.168.98.71'], 'Discovery standard port');
-check($parser->invoke(null, 'kitchen-clock:8080', '192.168.98.71:4210')['Host'] === '192.168.98.71:8080', 'Discovery custom port');
-check($parser->invoke(null, 'clock:99999', '192.168.98.71:4210') === null, 'Reject invalid discovery port');
-check($parser->invoke(null, '<script>', '192.168.98.71:4210') === null, 'Reject malformed discovery replies');
 echo "All module tests passed.\n";

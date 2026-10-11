@@ -2,7 +2,7 @@
 
 Mit diesem Modul zeigt eine AWTRIX-NG-Uhr Werte und Meldungen aus IP-Symcon an. Die Verbindung läuft lokal über HTTP; ein MQTT-Broker ist nicht erforderlich. Die Grundfunktionen werden auf einer Ulanzi TC001 im laufenden Betrieb getestet. AWTRIX 3 wird nicht unterstützt.
 
-Aktueller Entwicklungsstand: **0.11** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
+Aktueller Entwicklungsstand: **0.12** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
 
 ## Funktionen
 
@@ -86,10 +86,10 @@ Regelmäßige Anzeigenupdates lösen keine Töne aus. Bestehende Aufrufe von `AW
 
 ```php
 AWNG_NotifyWithSound(12345, 'Waschmaschine fertig!', '', 10);
-AWNG_PlaySound(12345);            // ausgewählte Melodie
+AWNG_PlaySound(12345, '');            // ausgewählte Melodie
 AWNG_PlaySound(12345, 'klingel'); // gespeicherter Melodienname ohne .txt
 AWNG_StopSound(12345);           // laufenden Alert stoppen
-AWNG_Notify(12345, 'Türklingel', '', 10, 'klingel');
+AWNG_NotifyWithMelody(12345, 'Türklingel', '', 10, 'klingel');
 ```
 
 `12345` durch die eigene Instanz-ID ersetzen. **Kein Ton** lässt Nachrichten mit `AWNG_NotifyWithSound` stumm; Probehören benötigt eine ausgewählte Melodie. Fehlende Melodien oder stumme Regler können dazu führen, dass eine Nachricht ohne hörbaren Ton erscheint. Die Liste wird getrennt je Uhr gespeichert; nach einem Hostwechsel erneut laden. Ruhezeiten, eigene RTTTL-Eingabe im Modul und automatische Ereignisregeln sind noch nicht enthalten.
@@ -145,7 +145,7 @@ Bei Verbindungs- oder Konfigurationsfehlern zeigt die Instanz einen Fehlerstatus
 ```php
 // 12345 durch die ID der AWTRIX-NG-Instanz ersetzen.
 AWNG_Notify(12345, 'Waschmaschine fertig!', '', 10);
-AWNG_UpdateDisplays(12345);
+AWNG_UpdateDisplays(12345, false);
 ```
 
 `AWNG_TestConnection(12345)` liefert den Verbindungstest als Text, `AWNG_LoadIcons(12345)` lädt die Icon-Auswahl. Senden und Aktualisieren liefern einen booleschen Erfolgswert.
@@ -176,3 +176,5 @@ Wenn du die Weiterentwicklung unterstützen möchtest, kannst du das gerne tun:
 ![QR-Code zur PayPal-Spende](assets/paypal_qr.png)
 
 ☕ Vielen Dank für deine Unterstützung!
+
+Bei globalen `AWNG_`-Aufrufen alle Parameter angeben: Symcon übernimmt PHP-Standardwerte nicht in die erzeugten Funktionen. Für reine Wertupdates `AWNG_UpdateDisplays(12345, false)` verwenden.

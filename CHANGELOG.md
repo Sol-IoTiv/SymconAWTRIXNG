@@ -2,6 +2,14 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.12 – Symcon-Funktionsaufrufe korrigiert
+
+- Refresh-Timer übergibt den Parameter für den Reihenfolgeabgleich ausdrücklich; ArgumentCountError behoben.
+- Probehören übergibt den Melodienparameter ausdrücklich.
+- Bisherige Notify-Signatur erhalten; ausdrücklich gewählte Melodien über NotifyWithMelody senden.
+- PHP-Beispiele um alle erforderlichen Argumente ergänzt.
+- Regressionstest mit Symcon-ähnlichen Funktionen ohne PHP-Standardwerte ergänzt.
+
 ## 0.11 – Töne, Laufschrift und Countdown
 
 - Anzeigen um die Inhaltstypen Laufschrift und Countdown erweitert; bestehende Variablenanzeigen bleiben erhalten.

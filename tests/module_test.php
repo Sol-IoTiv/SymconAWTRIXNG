@@ -50,13 +50,14 @@ class IPSModule {
     public $attributes = [];
     public $variables = [];
     public $status = 0;
+    public $timers = [];
     public function Create() {}
     public function ApplyChanges() {}
     protected function RegisterPropertyString($name, $value) { $this->properties[$name] = $value; }
     protected function RegisterPropertyInteger($name, $value) { $this->properties[$name] = $value; }
     protected function RegisterPropertyBoolean($name, $value) { $this->properties[$name] = $value; }
     protected function RegisterAttributeString($name, $value) { $this->attributes[$name] = $value; }
-    protected function RegisterTimer($name, $value, $script) {}
+    protected function RegisterTimer($name, $value, $script) { $this->timers[$name] = $script; }
     protected function RegisterVariableString($ident, $name, $profile, $position) {}
     protected function ReadPropertyString($name) { return $this->properties[$name]; }
     protected function ReadPropertyInteger($name) { return $this->properties[$name]; }
@@ -249,7 +250,7 @@ check($module->NotifyWithSound('Fertig', '', 10), 'Notification with configured 
 check(end($requests)[2]['sound'] === ['file' => 'bell'], 'Notification sound payload');
 check($module->Notify('Leise'), 'Existing notification API remains silent');
 check(!isset(end($requests)[2]['sound']), 'No implicit sound in existing notifications');
-check($module->Notify('Andere Melodie', '', 5, 'other'), 'Explicit notification melody');
+check($module->NotifyWithMelody('Andere Melodie', '', 5, 'other'), 'Explicit notification melody');
 check(end($requests)[2]['sound']['file'] === 'other', 'Explicit melody payload');
 check($module->StopSound() && end($requests)[2] === ['group' => 'alert'], 'Stop alerts only');
 $before = count($requests);
@@ -267,4 +268,22 @@ $before = count($requests);
 check(!$module->UpdateDisplays(true) && count($requests) === $before, 'Invalid volume rejected');
 $capabilities['audio']['rtttl'] = false;
 check(strpos($module->LoadSounds(), 'keine Unterstützung') !== false, 'Unsupported sound hardware reported');
+// Symcon generates global functions without PHP parameter defaults.
+foreach (['UpdateDisplays', 'Notify', 'NotifyWithMelody', 'NotifyWithSound', 'PlaySound'] as $method) {
+    $args = array_map(static function ($parameter) { return '$' . $parameter->getName(); }, (new ReflectionMethod(AWTRIXNG::class, $method))->getParameters());
+    eval('function AWNG_' . $method . '($id, ' . implode(', ', $args) . ') { global $module; return $module->' . $method . '(' . implode(', ', $args) . '); }');
+}
+$module->properties['ManageAudio'] = false;
+$module->properties['Displays'] = '[]';
+$module->attributes['Managed'] = '{}';
+$_IPS = ['TARGET' => $module->InstanceID];
+eval($module->timers['Refresh']);
+$form = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ERROR);
+$id = $module->InstanceID;
+foreach ($form['actions'] as $action) {
+    if (in_array($action['caption'], ['Ton probehören', 'Testnachricht', 'Testnachricht mit Ton', 'Anzeigen jetzt senden'], true)) {
+        eval($action['onClick']);
+    }
+}
+check((new ReflectionFunction('AWNG_Notify'))->getNumberOfRequiredParameters() === 4, 'Existing notification global signature must stay compatible');
 echo "All module tests passed.\n";

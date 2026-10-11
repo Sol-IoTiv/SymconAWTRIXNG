@@ -31,7 +31,7 @@ class AWTRIXNG extends IPSModule
         }
         $this->RegisterAttributeString('Icons', '[]');
         $this->RegisterAttributeString('Managed', '{}');
-        $this->RegisterTimer('Refresh', 0, 'AWNG_UpdateDisplays($_IPS["TARGET"]);');
+        $this->RegisterTimer('Refresh', 0, 'AWNG_UpdateDisplays($_IPS["TARGET"], false);');
         $this->RegisterVariableString('LastError', 'Letzter Fehler', '', 0);
     }
 
@@ -179,7 +179,7 @@ class AWTRIXNG extends IPSModule
                 ['type' => 'Label', 'caption' => 'In der Galerie anmelden, Icon öffnen und mit Send to AWTRIX auf die Uhr übertragen. Danach hier Icons von Uhr laden und in der Anzeigenzeile auswählen. Änderungen vorher übernehmen.'],
                 ['type' => 'Button', 'caption' => 'Icons von Uhr laden', 'onClick' => 'echo AWNG_LoadIcons($id);'],
                 ['type' => 'Button', 'caption' => 'Melodien von Uhr laden', 'onClick' => 'echo AWNG_LoadSounds($id);'],
-                ['type' => 'Button', 'caption' => 'Ton probehören', 'onClick' => 'AWNG_PlaySound($id);'],
+                ['type' => 'Button', 'caption' => 'Ton probehören', 'onClick' => 'AWNG_PlaySound($id, "");'],
                 ['type' => 'Button', 'caption' => 'Ton stoppen', 'onClick' => 'AWNG_StopSound($id);'],
                 ['type' => 'Button', 'caption' => 'Testnachricht mit Ton', 'onClick' => 'AWNG_NotifyWithSound($id, "Hallo von Symcon!", "", 5);'],
                 ['type' => 'Button', 'caption' => 'Testnachricht', 'onClick' => 'AWNG_Notify($id, "Hallo von Symcon!", "", 5);'],
@@ -393,7 +393,12 @@ class AWTRIXNG extends IPSModule
         }
     }
 
-    public function Notify(string $Text, string $Icon = '', int $Duration = 5, string $Sound = ''): bool
+    public function Notify(string $Text, string $Icon = '', int $Duration = 5): bool
+    {
+        return $this->NotifyWithMelody($Text, $Icon, $Duration, '');
+    }
+
+    public function NotifyWithMelody(string $Text, string $Icon, int $Duration, string $Sound): bool
     {
         try {
             $payload = ['text' => $Text, 'durationMs' => max(1, min(300, $Duration)) * 1000];
@@ -492,7 +497,7 @@ class AWTRIXNG extends IPSModule
 
     public function NotifyWithSound(string $Text, string $Icon = '', int $Duration = 5): bool
     {
-        return $this->Notify($Text, $Icon, $Duration, $this->ReadPropertyString('Sound'));
+        return $this->NotifyWithMelody($Text, $Icon, $Duration, $this->ReadPropertyString('Sound'));
     }
 
     private function SyncAudio(): void

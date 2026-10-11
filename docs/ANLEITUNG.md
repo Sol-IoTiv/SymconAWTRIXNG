@@ -73,10 +73,10 @@ Regelmäßige Anzeigenupdates lösen keine Töne aus. Bestehende Aufrufe von `AW
 
 ```php
 AWNG_NotifyWithSound(12345, 'Waschmaschine fertig!', '', 10);
-AWNG_PlaySound(12345);            // ausgewählte Melodie
+AWNG_PlaySound(12345, '');            // ausgewählte Melodie
 AWNG_PlaySound(12345, 'klingel'); // gespeicherter Melodienname ohne .txt
 AWNG_StopSound(12345);           // laufenden Alert stoppen
-AWNG_Notify(12345, 'Türklingel', '', 10, 'klingel');
+AWNG_NotifyWithMelody(12345, 'Türklingel', '', 10, 'klingel');
 ```
 
 `12345` durch die eigene Instanz-ID ersetzen. **Kein Ton** lässt Nachrichten mit `AWNG_NotifyWithSound` stumm; Probehören benötigt eine ausgewählte Melodie. Fehlende Melodien oder stumme Regler können dazu führen, dass eine Nachricht ohne hörbaren Ton erscheint. Die Liste wird getrennt je Uhr gespeichert; nach einem Hostwechsel erneut laden. Ruhezeiten, eigene RTTTL-Eingabe im Modul und automatische Ereignisregeln sind noch nicht enthalten.
@@ -157,7 +157,7 @@ Vor dem Wechsel auf eine andere Uhr oder dem Löschen der Instanz alle Anzeigen 
 ```php
 // Instanz-ID anpassen.
 AWNG_Notify(12345, 'Waschmaschine fertig!', '', 10);
-AWNG_UpdateDisplays(12345);       // Werte senden
+AWNG_UpdateDisplays(12345, false);       // Werte senden
 AWNG_UpdateDisplays(12345, true); // Werte und gespeicherte Reihenfolge senden
 ```
 
@@ -166,3 +166,5 @@ AWNG_UpdateDisplays(12345, true); // Werte und gespeicherte Reihenfolge senden
 ## Entwicklung unterstützen
 
 Den freiwilligen Spendenbutton und QR-Code findest du in der [README](../README.md#entwicklung-unterstützen).
+
+Bei globalen `AWNG_`-Aufrufen alle Parameter angeben: Symcon übernimmt PHP-Standardwerte nicht in die erzeugten Funktionen. Für reine Wertupdates `AWNG_UpdateDisplays(12345, false)` verwenden.

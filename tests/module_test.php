@@ -154,6 +154,20 @@ foreach ([[0, 'akku00'], [10, 'akku00'], [10.1, 'akku20'], [20, 'akku20'], [20.1
 $module->properties['IconRules'] = '[{"Key":"aussen","Maximum":10,"Icon":"one"},{"Key":"aussen","Maximum":10,"Icon":"two"}]';
 $before = count($requests);
 check(!$module->UpdateDisplays() && count($requests) === $before, 'Duplicate thresholds must fail before sending');
+$module->properties['IconRules'] = '[]';
+$module->properties['Displays'] = json_encode([
+    array_merge($row, ['Key' => 'second']), array_merge($row, ['Key' => 'first'])
+]);
+$apps = [
+    ['name' => 'Time', 'origin' => 'builtin', 'enabled' => true],
+    ['name' => 'ips_12345_first', 'origin' => 'pushed', 'enabled' => true],
+    ['name' => 'external', 'origin' => 'script', 'enabled' => false],
+    ['name' => 'ips_12345_second', 'origin' => 'pushed', 'enabled' => true]
+];
+check($module->UpdateDisplays(true), 'Reordering failed');
+$orderRequest = end($requests);
+check($orderRequest[2]['order'] === ['Time', 'ips_12345_second', 'ips_12345_first', 'external'], 'Order must follow table and preserve external apps');
+check($orderRequest[2]['disabled'] === ['external'], 'External disabled state must be preserved');
 $parser = new ReflectionMethod(AWTRIXNGDiscovery::class, 'ParseReply');
 $parser->setAccessible(true);
 check($parser->invoke(null, 'kitchen-clock', '192.168.98.71:4210') === ['Name' => 'kitchen-clock', 'Host' => '192.168.98.71'], 'Discovery standard port');

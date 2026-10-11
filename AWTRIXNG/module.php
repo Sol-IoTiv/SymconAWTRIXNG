@@ -40,7 +40,7 @@ class AWTRIXNG extends IPSModule
             }
             $this->SetTimerInterval('Refresh', max(10, $this->ReadPropertyInteger('Interval')) * 1000);
             $this->SetStatus(102);
-            $this->UpdateDisplays();
+            $this->UpdateDisplays(true);
         } catch (Throwable $e) {
             $this->SetTimerInterval('Refresh', 0);
             $this->Failure($e);
@@ -99,7 +99,7 @@ class AWTRIXNG extends IPSModule
                 ]],
                 ['type' => 'NumberSpinner', 'name' => 'Interval', 'caption' => 'Regelmäßig aktualisieren (Sekunden)', 'minimum' => 10, 'maximum' => 3600],
                 ['type' => 'Label', 'caption' => 'Zuerst IP übernehmen, dann Icons laden. Kennung: 1–16 Buchstaben, Ziffern, _ oder -. Einheit inklusive Leerzeichen eingeben, z. B. " °C".'],
-                ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen', 'rowCount' => 8, 'add' => true, 'delete' => true, 'columns' => $columns],
+                ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen (Reihenfolge per Drag-and-drop ändern, danach übernehmen)', 'rowCount' => 8, 'add' => true, 'delete' => true, 'changeOrder' => true, 'columns' => $columns],
                 ['type' => 'ExpansionPanel', 'caption' => 'Icons abhängig vom Wert', 'items' => [
                     ['type' => 'Label', 'caption' => 'Anzeige aus der Liste auswählen. Neue oder geänderte Anzeigen zuerst übernehmen. Es gilt die kleinste passende Obergrenze (Wert kleiner oder gleich). Oberhalb aller Grenzen gilt das normale Icon der Anzeige.'],
                     ['type' => 'List', 'name' => 'IconRules', 'caption' => 'Icon-Regeln', 'rowCount' => 6, 'add' => count($displayOptions) > 0, 'delete' => true, 'columns' => [
@@ -125,7 +125,7 @@ class AWTRIXNG extends IPSModule
                 ['type' => 'Label', 'caption' => 'In der Galerie anmelden, Icon öffnen und mit Send to AWTRIX auf die Uhr übertragen. Danach hier Icons von Uhr laden und in der Anzeigenzeile auswählen. Änderungen vorher übernehmen.'],
                 ['type' => 'Button', 'caption' => 'Icons von Uhr laden', 'onClick' => 'echo AWNG_LoadIcons($id);'],
                 ['type' => 'Button', 'caption' => 'Testnachricht', 'onClick' => 'AWNG_Notify($id, "Hallo von Symcon!", "", 5);'],
-                ['type' => 'Button', 'caption' => 'Anzeigen jetzt senden', 'onClick' => 'AWNG_UpdateDisplays($id);']
+                ['type' => 'Button', 'caption' => 'Anzeigen jetzt senden', 'onClick' => 'AWNG_UpdateDisplays($id, true);']
             ],
             'status' => [
                 ['code' => 102, 'icon' => 'active', 'caption' => 'Bereit'],
@@ -183,7 +183,7 @@ class AWTRIXNG extends IPSModule
         }
     }
 
-    public function UpdateDisplays(): bool
+    public function UpdateDisplays(bool $SyncOrder = false): bool
     {
         if (!IPS_SemaphoreEnter('AWNG_' . $this->InstanceID, 100)) {
             return false;
@@ -234,6 +234,9 @@ class AWTRIXNG extends IPSModule
                 $all[$base] = $managed;
                 $this->WriteAttributeString('Managed', json_encode($all, JSON_THROW_ON_ERROR));
             }
+            if ($SyncOrder) {
+                $this->SyncDisplayOrder($wanted);
+            }
             $this->Success();
             return true;
         } catch (Throwable $e) {
@@ -257,6 +260,44 @@ class AWTRIXNG extends IPSModule
         } catch (Throwable $e) {
             $this->Failure($e);
             return false;
+        }
+    }
+
+    private function SyncDisplayOrder(array $wanted): void
+    {
+        $apps = json_decode($this->Request('GET', '/api/v1/apps'), true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($apps)) {
+            throw new RuntimeException('Ungültige App-Liste für die Reihenfolge.');
+        }
+        $prefix = 'ips_' . $this->InstanceID . '_';
+        $order = [];
+        $current = [];
+        $disabled = [];
+        $inserted = false;
+        foreach ($apps as $app) {
+            $name = $app['name'] ?? '';
+            if (!is_string($name) || $name === '' || ($app['origin'] ?? '') === 'module') {
+                continue;
+            }
+            $current[] = $name;
+            if (($app['enabled'] ?? true) === false) {
+                $disabled[] = $name;
+            }
+            if (strpos($name, $prefix) === 0) {
+                if (!$inserted) {
+                    $order = array_merge($order, $wanted);
+                    $inserted = true;
+                }
+                continue;
+            }
+            $order[] = $name;
+        }
+        if (!$inserted) {
+            $order = array_merge($order, $wanted);
+        }
+        if ($order !== $current) {
+            // The API requires the complete disabled list; preserve all switches.
+            $this->Request('PUT', '/api/v1/apps/order', ['order' => $order, 'disabled' => $disabled]);
         }
     }
 

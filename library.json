@@ -3,8 +3,10 @@
   "author": "Sol-IoTiv",
   "name": "SymconAWTRIXNG",
   "url": "https://github.com/Sol-IoTiv/SymconAWTRIXNG",
-  "compatibility": {"version": "7.0"},
-  "version": "0.17",
-  "build": 17,
-  "date": 1791676800
+  "compatibility": {
+    "version": "7.0"
+  },
+  "version": "0.18b",
+  "build": 18,
+  "date": 1791721080
 }

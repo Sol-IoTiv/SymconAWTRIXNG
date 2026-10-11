@@ -2,6 +2,12 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.18b – Beta-Teststand vorbereiten
+
+- Versionsnummer mit b als Beta kennzeichnen; Buildnummer auf 18 erhöhen.
+- Aktuellen Entwicklungsstand für die Übernahme nach beta-staging vorbereiten.
+- Übernahme nach main erst nach Prüfung des Beta-Stands freigeben.
+
 ## 0.17 – Verbindung kompakter anordnen
 
 - IP-Adresse und zusätzliches Sendeintervall nebeneinander anzeigen.

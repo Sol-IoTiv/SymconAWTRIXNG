@@ -38,7 +38,7 @@ Unter **Anzeigen** auf **Hinzufügen** klicken:
 
 Alternativ **Icons auf der Uhr verwalten** verwenden und eigene Dateien über die AWTRIX-Oberfläche hinzufügen. Danach in Symcon **Icons von Uhr laden** drücken. Das Formular wird neu geladen; ungespeicherte Änderungen daher vorher übernehmen. Anschließend in der Anzeigenzeile das Icon auswählen.
 
-Die Icon-ID entspricht dem Dateinamen auf der neuen Uhr ohne Erweiterung. Icons der alten Uhr werden nicht automatisch übertragen. Eine Bildvorschau im Symcon-Dropdown ist derzeit nicht enthalten.
+Im Dropdown stehen die Dateinamen der installierten Icons ohne Erweiterung. Icons der alten Uhr werden nicht automatisch übertragen. Eine Bildvorschau im Symcon-Dropdown ist derzeit nicht enthalten.
 
 ## 5. Icons nach Wert wechseln
 
@@ -46,23 +46,19 @@ Im Abschnitt **Icons abhängig vom Wert** eine Regel hinzufügen. Im Dropdown di
 
 Es gilt die kleinste passende Obergrenze einschließlich des Grenzwerts. Die Reihenfolge der Regeln ist unerheblich. Oberhalb aller Grenzen verwendet die Anzeige ihr normales Icon. Verglichen wird der ursprüngliche numerische Wert, unabhängig von der Textformatierung. Eine Regel mit „Kein Icon“ blendet das Icon für ihren Bereich aus.
 
-### PV
+**PV-Erzeugung:** Wähle in der Anzeige das Icon für aktive Erzeugung als normales Icon. Ergänze eine Regel mit Obergrenze `0` und einem Icon für keine Erzeugung. Bei null oder negativen Werten erscheint das Ruhe-Icon, bei positiven Werten das Erzeugungs-Icon.
 
-Normales Icon der Anzeige: `pv`. Eine Regel mit Obergrenze `0` und Icon `no_pv` zeigt bei null und negativen Werten das andere Icon. Bei jedem positiven Wert erscheint `pv`.
+**Akkustand:** Wähle die Variable mit dem Ladezustand in Prozent. Als normales Icon verwendest du eine volle Batterie. Ergänze für dieselbe Anzeige folgende Regeln:
 
-### Hausakku
-
-Normales Icon der Anzeige: `akku100`. Die Anzeige verwendet den Ladezustand in Prozent.
-
-| Obergrenze einschließlich | Icon |
+| Wert bis einschließlich | Gewünschtes Batterie-Icon |
 |---:|---|
-| 10 | akku00 |
-| 20 | akku20 |
-| 40 | akku40 |
-| 60 | akku60 |
-| 80 | akku80 |
+| 10 % | Leer |
+| 20 % | Fast leer |
+| 40 % | Etwa ein Drittel geladen |
+| 60 % | Etwa halb geladen |
+| 80 % | Weitgehend geladen |
 
-Über 80 Prozent erscheint `akku100`. Die Icon-Namen sind Beispiele und müssen zu den installierten Dateien passen. Dieselbe Anzeige darf mehrere Regeln, aber keine doppelte Obergrenze haben.
+Bei mehr als 80 % erscheint das normale Icon der vollen Batterie. Wähle jeweils ein passendes, auf der Uhr installiertes Icon aus dem Dropdown. Die Grenzen sind Beispiele und können angepasst werden. Regeln bleiben für deaktivierte Anzeigen gespeichert.
 
 ## 6. Reihenfolge ändern
 
@@ -79,6 +75,17 @@ Unter **Standardanzeigen der Uhr** die Steuerung über Symcon aktivieren. Uhrzei
 - Nur Symcon-Werte: Alle fünf abwählen, Steuerung aktiviert lassen.
 
 Ohne aktivierte Steuerung verändert das Modul die Standardanzeigen nicht. Beim späteren Ausschalten der Steuerung bleiben die zuletzt gesetzten Zustände auf der Uhr erhalten. Aktive Steuerung setzt abweichende Änderungen aus der AWTRIX-Oberfläche beim nächsten Abgleich wieder auf die Symcon-Auswahl zurück.
+
+## Anzeige und Übergänge einstellen
+
+1. IP-Adresse speichern und **Übergänge von Uhr laden** drücken. Das Formular wird neu geladen; Änderungen vorher übernehmen.
+2. Unter **Anzeige und Übergänge** die Steuerung über Symcon einschalten.
+3. Übergang auswählen, beispielsweise Fade, und Dauer festlegen: 500 Millisekunden = 0,5 Sekunden; 0 = sofortiger Wechsel.
+4. Bewegungsrichtung und automatischen Anzeigenwechsel wählen. Bei ausgeschaltetem Wechsel erfolgt der Wechsel nur per Taste oder API.
+5. Helligkeitsautomatik über Lichtsensor aktivieren oder manuell 0 bis 255 wählen. Ohne Lichtsensor die Automatik ausschalten.
+6. **Übernehmen** drücken. Später kann **Anzeigen jetzt senden** die gespeicherten Einstellungen erneut abgleichen.
+
+Die Einstellungen gelten für alle Anzeigen auf der Uhr. Nur geänderte Werte werden geschrieben. Normale Wertaktualisierungen ändern sie nicht. Ohne aktivierte Steuerung bleibt die Uhrkonfiguration erhalten; beim späteren Ausschalten bleiben die zuletzt übertragenen Einstellungen bestehen. Ein Wechsel der Bewegungsrichtung verändert die Reihenfolge nicht. Die Dauer jeder eigenen Anzeige wird weiterhin in ihrer Anzeigenzeile festgelegt.
 
 ## 8. Aktualisierung und Fehlerhilfe
 
@@ -105,7 +112,7 @@ AWNG_UpdateDisplays(12345);       // Werte senden
 AWNG_UpdateDisplays(12345, true); // Werte und gespeicherte Reihenfolge senden
 ```
 
-`AWNG_TestConnection(12345)` testet die Verbindung. `AWNG_LoadIcons(12345)` aktualisiert die Icon-Auswahl und lädt das Formular neu. `AWNG_GetIconsURL(12345)` liefert die Adresse der Icon-Verwaltung der Uhr.
+`AWNG_LoadTransitions(12345)` lädt die Übergangsauswahl. `AWNG_TestConnection(12345)` testet die Verbindung. `AWNG_LoadIcons(12345)` aktualisiert die Icon-Auswahl und lädt das Formular neu. `AWNG_GetIconsURL(12345)` liefert die Adresse der Icon-Verwaltung der Uhr.
 
 ## Entwicklung unterstützen
 

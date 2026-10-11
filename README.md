@@ -2,7 +2,7 @@
 
 Mit diesem Modul zeigt eine AWTRIX-NG-Uhr Werte und Meldungen aus IP-Symcon an. Die Verbindung läuft lokal über HTTP; ein MQTT-Broker ist nicht erforderlich. Die Grundfunktionen werden auf einer Ulanzi TC001 im laufenden Betrieb getestet. AWTRIX 3 wird nicht unterstützt.
 
-Aktueller Entwicklungsstand: **0.8** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. Die automatische PHP-Testsuite ist noch nicht abschließend geprüft. Es gibt noch keinen freigegebenen Stable-Release.
+Aktueller Entwicklungsstand: **0.9** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
 
 ## Funktionen
 
@@ -12,6 +12,7 @@ Aktueller Entwicklungsstand: **0.8** auf `dev`. Variablenanzeige, Standardanzeig
 - Standardanzeigen einzeln auswählen: Uhrzeit, Datum, Temperatur, Luftfeuchtigkeit und Batterie.
 - AWTRIX-Icon-Galerie öffnen, Icons auf der Uhr verwalten und in Symcon auswählen.
 - Dynamische Icon-Regeln, etwa für PV-Erzeugung und Akkustand.
+- Übergänge, automatischen Anzeigenwechsel und Helligkeit einstellen.
 - Anzeigen per Drag-and-drop sortieren und die Reihenfolge auf die Uhr übertragen.
 - Verbindungstest, Testnachricht und Benachrichtigungen aus PHP-Skripten.
 
@@ -41,7 +42,7 @@ Ab Version 0.8 ist die Discovery-Suche entfernt. Bereits angelegte Instanzen **A
 6. **Icon-Galerie öffnen (TC001)** drücken. Der Knopf öffnet den AWTRIX Hub mit dem Filter ESP32 / 32×8. Im Hub anmelden, ein Icon öffnen und **Send to AWTRIX** verwenden. Dabei die richtige Uhr auswählen bzw. verbinden. Alternativ **Icons auf der Uhr verwalten** öffnen und dort Icons hinzufügen. Danach im Symcon-Modul **Icons von Uhr laden** drücken. Die Auswahl enthält die gespeicherten Icons; eine Bildvorschau ist noch nicht implementiert.
 7. In **Anzeigen** eine Zeile hinzufügen: eindeutige Kennung (z. B. `aussen`), Variable, Icon, Nachkommastellen, Einheit und Dauer auswählen. Wieder **übernehmen**.
 
-Beispiel: Variable `22180`, Kennung `aussen`, Nachkommastellen `1`, Einheit ` °C`, Dauer `5`. Der Wert 18.4 erscheint als `18,4 °C`. Einheiten werden exakt angehängt; gewünschte Leerzeichen daher mit eingeben. Boolesche Variablen erscheinen als Ein/Aus, Stringvariablen unverändert. Variablenprofile werden nicht automatisch übernommen.
+Beispiel: Außentemperatur-Variable, Kennung `aussen`, Nachkommastellen `1`, Einheit ` °C`, Dauer `5`. Der Wert 18.4 erscheint als `18,4 °C`. Einheiten werden exakt angehängt; gewünschte Leerzeichen daher mit eingeben. Boolesche Variablen erscheinen als Ein/Aus, Stringvariablen unverändert. Variablenprofile werden nicht automatisch übernommen.
 
 Die Kennung ist im Hinzufügen- und Bearbeiten-Dialog einer Anzeige ein Pflichtfeld: 1–16 Zeichen, erlaubt sind A–Z, a–z, 0–9, Unterstrich und Bindestrich. Leere Kennungen und Leerzeichen werden durch die Formularvalidierung abgewiesen. In Icon-Regeln wird die Anzeige über ein Dropdown ausgewählt. Neue oder umbenannte Anzeigen zuerst übernehmen, damit die Auswahl aktualisiert wird. Auch deaktivierte Anzeigen sind auswählbar. Verweise auf entfernte Anzeigen bleiben mit „Anzeige fehlt“ sichtbar und können korrigiert oder gelöscht werden. Ohne angelegte Anzeigen ist das Hinzufügen von Icon-Regeln nicht verfügbar. Doppelte Anzeigenkennungen werden zusätzlich beim Übernehmen durch das Modul geprüft.
 
@@ -51,19 +52,29 @@ Die Kennung ist im Hinzufügen- und Bearbeiten-Dialog einer Anzeige ein Pflichtf
 
 Im Abschnitt **Icons abhängig vom Wert** Regeln mit der gleichen Kennung wie die Anzeige hinzufügen. Jede Regel enthält eine Obergrenze und ein Icon. Die kleinste Obergrenze, die größer oder gleich dem Variablenwert ist, gewinnt; die Reihenfolge der Zeilen spielt keine Rolle. Oberhalb aller Grenzen gilt das normale Icon aus der Anzeigenliste. Regeln verwenden den ungerundeten numerischen Variablenwert, nicht den angezeigten Text. Für String- und boolesche Variablen bleibt das normale Icon aktiv. Eine Regel mit „Kein Icon“ blendet das Icon in diesem Bereich aus. Änderungen übernehmen.
 
-**PV:** Anzeige `pv`, normales Icon `pv` (bisher beispielsweise `53562`). Eine Regel `pv` / `0` / `no_pv` (bisher `58526`) zeigt bei null und negativen Werten das Nacht-Icon, bei positiven Werten das PV-Icon. Die Namen bzw. IDs müssen auf der neuen Uhr tatsächlich vorhanden sein.
+**PV-Erzeugung:** Wähle in der Anzeige das Icon für aktive Erzeugung als normales Icon. Ergänze eine Regel mit Obergrenze `0` und einem Icon für keine Erzeugung. Bei null oder negativen Werten erscheint das Ruhe-Icon, bei positiven Werten das Erzeugungs-Icon.
 
-**Hausakku:** Anzeige `hausakku`, normales Icon `akku100` (bisher `56566`). Regeln:
+**Akkustand:** Wähle die Variable mit dem Ladezustand in Prozent. Als normales Icon verwendest du eine volle Batterie. Ergänze für dieselbe Anzeige folgende Regeln:
 
-| Kennung | Obergrenze einschließlich | Icon aus deinem bisherigen Skript |
-|---|---:|---|
-| hausakku | 10 | akku00 / 58975 |
-| hausakku | 20 | akku20 / 56562 |
-| hausakku | 40 | akku40 / 56563 |
-| hausakku | 60 | akku60 / 56564 |
-| hausakku | 80 | akku80 / 56565 |
+| Wert bis einschließlich | Gewünschtes Batterie-Icon |
+|---:|---|
+| 10 % | Leer |
+| 20 % | Fast leer |
+| 40 % | Etwa ein Drittel geladen |
+| 60 % | Etwa halb geladen |
+| 80 % | Weitgehend geladen |
 
-Über 80 % wird das normale Icon `akku100` verwendet. Die Tabelle reproduziert die Schwellen deines bisherigen Skripts. Icons zuerst auf der NG-Uhr installieren und **Icons von Uhr laden** verwenden. Alte LaMetric-IDs sind Beispiele; entscheidend sind die Dateinamen auf der neuen Uhr. Regeln bleiben bei vorübergehend deaktivierten Anzeigen gespeichert und wirken wieder, sobald die Anzeige mit derselben Kennung aktiviert wird.
+Bei mehr als 80 % erscheint das normale Icon der vollen Batterie. Wähle jeweils ein passendes, auf der Uhr installiertes Icon aus dem Dropdown. Die Grenzen sind Beispiele und können angepasst werden. Regeln bleiben für deaktivierte Anzeigen gespeichert.
+
+### Anzeige und Übergänge
+
+Im Abschnitt **Anzeige und Übergänge** die Steuerung über Symcon aktivieren. Zuerst **Übergänge von Uhr laden** drücken; ungespeicherte Änderungen vorher übernehmen. Das Dropdown enthält die von dieser Uhr unterstützten Übergänge. Effekt, Bewegungsrichtung und Dauer auswählen. `500` Millisekunden entsprechen 0,5 Sekunden, `0` schaltet die Animation aus. Die Reihenfolge wird durch eine umgekehrte Bewegungsrichtung nicht verändert.
+
+**Automatisch zur nächsten Anzeige wechseln** steuert die Rotation. Ohne Haken bleibt die aktuelle Anzeige bis zum Tastendruck oder einem API-Aufruf stehen. Die Anzeigedauer je Zeile bleibt unabhängig davon bestehen.
+
+Die Helligkeit kann automatisch über den Lichtsensor oder manuell von 0 bis 255 geregelt werden. Der manuelle Wert wird nur bei ausgeschalteter Automatik übertragen. Ohne gemeldeten Lichtsensor muss die manuelle Steuerung gewählt werden.
+
+**Übernehmen** oder **Anzeigen jetzt senden** gleicht diese Einstellungen ab. Nur abweichende Werte werden geschrieben; normale Wertaktualisierungen ändern die Einstellungen nicht. Die Optionen gelten für die gesamte Uhr und werden von AWTRIX gespeichert. Die Steuerung ist zunächst ausgeschaltet. Beim Ausschalten bleiben zuletzt gesetzte Einstellungen auf der Uhr erhalten.
 
 ### AWTRIX-Hub-Galerie
 
@@ -100,7 +111,7 @@ AWNG_UpdateDisplays(12345);
 
 ## Technische Referenz
 
-IP-Symcon ab 7.0 mit PHP/cURL. Verwendet die AWTRIX-NG-API v1: `GET /api/v1/version`, `GET /api/v1/apps`, `GET /api/v1/files?dir=/ICONS`, `PUT /api/v1/apps/pushed/{name}`, `PUT /api/v1/apps/{name}/enabled`, `PUT /api/v1/apps/order`, `DELETE /api/v1/apps/{name}` und `POST /api/v1/notifications`.
+IP-Symcon ab 7.0 mit PHP/cURL. Verwendet die AWTRIX-NG-API v1: `GET /api/v1/capabilities`, `GET /api/v1/settings`, `PATCH /api/v1/settings`, `GET /api/v1/version`, `GET /api/v1/apps`, `GET /api/v1/files?dir=/ICONS`, `PUT /api/v1/apps/pushed/{name}`, `PUT /api/v1/apps/{name}/enabled`, `PUT /api/v1/apps/order`, `DELETE /api/v1/apps/{name}` und `POST /api/v1/notifications`.
 
 - [AWTRIX NG Dokumentation](https://blueforcer.github.io/awtrix-ng/esp32/)
 - [HTTP API](https://blueforcer.github.io/awtrix-ng/esp32/reference/http/)

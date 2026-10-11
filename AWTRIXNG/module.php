@@ -14,6 +14,14 @@ class AWTRIXNG extends IPSModule
         $this->RegisterPropertyString('Displays', '[]');
         $this->RegisterPropertyString('IconRules', '[]');
         $this->RegisterPropertyBoolean('ManageBuiltins', false);
+        $this->RegisterPropertyBoolean('ManageAppearance', false);
+        $this->RegisterPropertyBoolean('AutoTransition', true);
+        $this->RegisterPropertyString('TransitionEffect', 'Fade');
+        $this->RegisterPropertyInteger('TransitionDurationMs', 500);
+        $this->RegisterPropertyString('TransitionDirection', 'normal');
+        $this->RegisterPropertyBoolean('AutoBrightness', true);
+        $this->RegisterPropertyInteger('Brightness', 120);
+        $this->RegisterAttributeString('Transitions', '{}');
         foreach (['Time', 'Date', 'Temperature', 'Humidity', 'Battery'] as $name) {
             $this->RegisterPropertyBoolean('Builtin' . $name, in_array($name, ['Time', 'Date'], true));
         }
@@ -57,6 +65,15 @@ class AWTRIXNG extends IPSModule
 
     public function GetConfigurationForm()
     {
+        $transitionOptions = [];
+        $transitionsByHost = json_decode($this->ReadAttributeString('Transitions'), true) ?: [];
+        $hostKey = 'http://' . strtolower(trim($this->ReadPropertyString('Host')));
+        foreach ($transitionsByHost[$hostKey] ?? [] as $transition) {
+            $transitionOptions[] = ['caption' => $transition, 'value' => $transition];
+        }
+        if (!in_array($this->ReadPropertyString('TransitionEffect'), array_column($transitionOptions, 'value'), true)) {
+            $transitionOptions[] = ['caption' => $this->ReadPropertyString('TransitionEffect') . ' (noch nicht geprüft)', 'value' => $this->ReadPropertyString('TransitionEffect')];
+        }
         $options = [['caption' => 'Kein Icon', 'value' => '']];
         foreach (json_decode($this->ReadAttributeString('Icons'), true) ?: [] as $icon) {
             $options[] = ['caption' => $icon, 'value' => $icon];
@@ -116,10 +133,21 @@ class AWTRIXNG extends IPSModule
                     ['type' => 'CheckBox', 'name' => 'BuiltinTemperature', 'caption' => 'Gerätetemperatur'],
                     ['type' => 'CheckBox', 'name' => 'BuiltinHumidity', 'caption' => 'Luftfeuchtigkeit des Geräts'],
                     ['type' => 'CheckBox', 'name' => 'BuiltinBattery', 'caption' => 'Batteriestand der Uhr']
+                ]],
+                ['type' => 'ExpansionPanel', 'caption' => 'Anzeige und Übergänge', 'items' => [
+                    ['type' => 'CheckBox', 'name' => 'ManageAppearance', 'caption' => 'Übergänge und Helligkeit über Symcon steuern'],
+                    ['type' => 'Label', 'caption' => 'Gilt für die gesamte Uhr. Zuerst IP übernehmen und Übergänge von Uhr laden. Einstellungen werden beim Übernehmen oder mit Anzeigen jetzt senden abgeglichen. Dauer 0 bedeutet sofortiger Wechsel.'],
+                    ['type' => 'CheckBox', 'name' => 'AutoTransition', 'caption' => 'Automatisch zur nächsten Anzeige wechseln'],
+                    ['type' => 'Select', 'name' => 'TransitionEffect', 'caption' => 'Übergang', 'options' => $transitionOptions],
+                    ['type' => 'NumberSpinner', 'name' => 'TransitionDurationMs', 'caption' => 'Übergangsdauer (Millisekunden, 500 = 0,5 Sekunden)', 'minimum' => 0, 'maximum' => 10000],
+                    ['type' => 'Select', 'name' => 'TransitionDirection', 'caption' => 'Bewegungsrichtung', 'options' => [['caption' => 'Normal', 'value' => 'normal'], ['caption' => 'Umgekehrt', 'value' => 'reverse']]],
+                    ['type' => 'CheckBox', 'name' => 'AutoBrightness', 'caption' => 'Helligkeit automatisch über den Lichtsensor'],
+                    ['type' => 'NumberSpinner', 'name' => 'Brightness', 'caption' => 'Manuelle Helligkeit (0–255, nur bei ausgeschalteter Automatik)', 'minimum' => 0, 'maximum' => 255]
                 ]]
             ],
             'actions' => [
                 ['type' => 'Button', 'caption' => 'Verbindung testen', 'onClick' => 'echo AWNG_TestConnection($id);'],
+                ['type' => 'Button', 'caption' => 'Übergänge von Uhr laden', 'onClick' => 'echo AWNG_LoadTransitions($id);'],
                 ['type' => 'Button', 'caption' => 'Icon-Galerie öffnen (TC001)', 'link' => true, 'onClick' => 'echo "https://awtrix.de/icons?device=esp32&panel=32x8&caps=audio.rtttl,sensors.light";'],
                 ['type' => 'Button', 'caption' => 'Icons auf der Uhr verwalten', 'link' => true, 'onClick' => 'echo AWNG_GetIconsURL($id);'],
                 ['type' => 'Label', 'caption' => 'In der Galerie anmelden, Icon öffnen und mit Send to AWTRIX auf die Uhr übertragen. Danach hier Icons von Uhr laden und in der Anzeigenzeile auswählen. Änderungen vorher übernehmen.'],
@@ -174,6 +202,81 @@ class AWTRIXNG extends IPSModule
         }
     }
 
+    public function LoadTransitions(): string
+    {
+        try {
+            $capabilities = $this->Capabilities();
+            $this->Success();
+            $this->ReloadForm();
+            return count($capabilities['transitions']) . ' Übergänge geladen.';
+        } catch (Throwable $e) {
+            $this->Failure($e);
+            return $e->getMessage();
+        }
+    }
+
+    private function Capabilities(): array
+    {
+        $result = json_decode($this->Request('GET', '/api/v1/capabilities'), true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($result) || empty($result['transitions']) || !is_array($result['transitions'])) {
+            throw new RuntimeException('Die Uhr liefert keine gültige Übergangsliste.');
+        }
+        foreach ($result['transitions'] as $name) {
+            if (!is_string($name) || $name === '') {
+                throw new RuntimeException('Ungültiger Übergangsname von der Uhr.');
+            }
+        }
+        $all = json_decode($this->ReadAttributeString('Transitions'), true) ?: [];
+        $all[$this->BaseURL()] = array_values(array_unique($result['transitions']));
+        $this->WriteAttributeString('Transitions', json_encode($all, JSON_THROW_ON_ERROR));
+        return $result;
+    }
+
+    private function SyncAppearance(): void
+    {
+        if (!$this->ReadPropertyBoolean('ManageAppearance')) {
+            return;
+        }
+        $duration = $this->ReadPropertyInteger('TransitionDurationMs');
+        $brightness = $this->ReadPropertyInteger('Brightness');
+        $direction = $this->ReadPropertyString('TransitionDirection');
+        if ($duration < 0 || $duration > 10000 || $brightness < 0 || $brightness > 255 || !in_array($direction, ['normal', 'reverse'], true)) {
+            throw new InvalidArgumentException('Übergangsdauer, Bewegungsrichtung oder Helligkeit ist ungültig.');
+        }
+        $capabilities = $this->Capabilities();
+        $effect = $this->ReadPropertyString('TransitionEffect');
+        if (!in_array($effect, $capabilities['transitions'], true)) {
+            throw new InvalidArgumentException('Übergang wird von dieser Uhr nicht unterstützt. Übergänge neu laden und auswählen.');
+        }
+        $automatic = $this->ReadPropertyBoolean('AutoBrightness');
+        if ($automatic && empty($capabilities['sensors']['light'])) {
+            throw new InvalidArgumentException('Diese Uhr meldet keinen Lichtsensor. Manuelle Helligkeit auswählen.');
+        }
+        $wanted = [
+            'autoTransition' => $this->ReadPropertyBoolean('AutoTransition'),
+            'transitionEffect' => $effect,
+            'transitionDurationMs' => $duration,
+            'transitionDirection' => $direction,
+            'autoBrightness' => $automatic
+        ];
+        if (!$automatic) {
+            $wanted['brightness'] = $brightness;
+        }
+        $current = json_decode($this->Request('GET', '/api/v1/settings'), true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($current)) {
+            throw new RuntimeException('Ungültige Einstellungen von der Uhr.');
+        }
+        $changes = [];
+        foreach ($wanted as $key => $value) {
+            if (!array_key_exists($key, $current) || $current[$key] !== $value) {
+                $changes[$key] = $value;
+            }
+        }
+        if ($changes !== []) {
+            $this->Request('PATCH', '/api/v1/settings', $changes);
+        }
+    }
+
     public function GetIconsURL(): string
     {
         try {
@@ -193,6 +296,9 @@ class AWTRIXNG extends IPSModule
             $base = $this->BaseURL();
             $rows = $this->Rows();
             $rules = $this->IconRules();
+            if ($SyncOrder) {
+                $this->SyncAppearance();
+            }
             $this->SyncBuiltins();
             // Ownership is scoped to the host: never delete names on another clock.
             $all = json_decode($this->ReadAttributeString('Managed'), true) ?: [];

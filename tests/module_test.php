@@ -9,17 +9,28 @@ $requests = [];
 $values = [22180 => 18.4];
 $status = 200;
 $apps = [];
+$settings = [];
+$capabilities = ['transitions' => ['Fade', 'Rain'], 'sensors' => ['light' => true]];
 function curl_init($url) { return (object) ['url' => $url, 'options' => []]; }
 function curl_setopt_array($handle, $options) { $handle->options = $options; }
 function curl_setopt($handle, $key, $value) { $handle->options[$key] = $value; }
 function curl_exec($handle) {
-    global $requests, $apps;
+    global $requests, $apps, $settings, $capabilities;
     $requests[] = [$handle->options[CURLOPT_CUSTOMREQUEST], $handle->url, isset($handle->options[CURLOPT_POSTFIELDS]) ? json_decode($handle->options[CURLOPT_POSTFIELDS], true) : null];
     if (strpos($handle->url, '/files?') !== false) {
         return '{"files":[{"name":"sun.gif","size":42},{"name":"temp.jpg","size":20}]}';
     }
     if (substr($handle->url, -12) === '/api/v1/apps') {
         return json_encode($apps);
+    }
+    if (substr($handle->url, -20) === '/api/v1/capabilities') {
+        return json_encode($capabilities);
+    }
+    if (substr($handle->url, -16) === '/api/v1/settings') {
+        if ($handle->options[CURLOPT_CUSTOMREQUEST] === 'PATCH') {
+            $settings = array_merge($settings, end($requests)[2]);
+        }
+        return json_encode($settings);
     }
     return '{"ok":true}';
 }
@@ -91,6 +102,7 @@ check(!$module->Notify('Test'), 'Authentication failure must propagate');
 check($module->status === 201, 'Error status missing');
 $status = 200;
 check($module->LoadIcons() === '2 Icons geladen.', 'Icon loading');
+$module->properties['Displays'] = json_encode([$row]);
 $form = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ERROR);
 check(count($form['elements'][5]['columns'][6]['edit']['options']) === 3, 'Icon selection');
 $keyPattern = '/' . $form['elements'][5]['columns'][1]['edit']['validate'] . '/D';
@@ -105,6 +117,7 @@ $module->properties['IconRules'] = '[{"Key":"removed","Maximum":0,"Icon":""}]';
 $orphanForm = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ERROR);
 check($orphanForm['elements'][6]['items'][1]['columns'][0]['edit']['options'][1]['caption'] === 'removed (Anzeige fehlt)', 'Preserve missing display references');
 $module->properties['IconRules'] = '[]';
+$module->properties['Displays'] = '[]';
 $module->properties['Host'] = '192.168.98.51/path';
 check(!$module->Notify('Test'), 'Host paths must be rejected');
 $module->properties['Host'] = '192.168.98.51';
@@ -167,4 +180,37 @@ check($module->UpdateDisplays(true), 'Reordering failed');
 $orderRequest = end($requests);
 check($orderRequest[2]['order'] === ['Time', 'ips_12345_second', 'ips_12345_first', 'external'], 'Order must follow table and preserve external apps');
 check($orderRequest[2]['disabled'] === ['external'], 'External disabled state must be preserved');
+$module->properties['Displays'] = '[]';
+$module->attributes['Managed'] = '{}';
+$apps = [];
+check($module->LoadTransitions() === '2 Übergänge geladen.', 'Load device transition choices');
+$module->properties['ManageAppearance'] = true;
+$before = count($requests);
+check($module->UpdateDisplays(true), 'Appearance sync failed');
+$patches = array_values(array_filter(array_slice($requests, $before), static function ($r) { return $r[0] === 'PATCH'; }));
+check(count($patches) === 1 && $patches[0][2]['transitionDurationMs'] === 500, 'Milliseconds and settings patch');
+check(!isset($patches[0][2]['brightness']), 'Automatic mode must preserve manual brightness');
+$before = count($requests);
+check($module->UpdateDisplays(true), 'Unchanged settings sync failed');
+check(count(array_filter(array_slice($requests, $before), static function ($r) { return $r[0] === 'PATCH'; })) === 0, 'Unchanged settings must not be rewritten');
+$before = count($requests);
+check($module->UpdateDisplays() && count($requests) === $before, 'Timer must not read or write appearance settings');
+$module->properties['AutoBrightness'] = false;
+$module->properties['Brightness'] = 42;
+$module->properties['TransitionDurationMs'] = 0;
+check($module->UpdateDisplays(true) && $settings['brightness'] === 42 && $settings['transitionDurationMs'] === 0, 'Manual brightness and instant transition');
+$module->properties['AutoBrightness'] = true;
+$capabilities['sensors']['light'] = false;
+check(!$module->UpdateDisplays(true), 'Missing light sensor must reject automatic mode');
+$capabilities['sensors']['light'] = true;
+$module->properties['TransitionEffect'] = 'Unsupported';
+check(!$module->UpdateDisplays(true), 'Unsupported transition must fail');
+$module->properties['TransitionEffect'] = 'Fade';
+$module->properties['Brightness'] = 256;
+$before = count($requests);
+check(!$module->UpdateDisplays(true) && count($requests) === $before, 'Invalid settings must fail before requests');
+$module->properties['ManageAppearance'] = false;
+$before = count($requests);
+check($module->UpdateDisplays(true), 'Disabled appearance management');
+check(count($requests) === $before + 1, 'Disabled management must only read app order');
 echo "All module tests passed.\n";

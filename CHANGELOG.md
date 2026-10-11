@@ -2,6 +2,15 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.9 – Übergänge und Helligkeit
+
+- Unterstützte Übergänge direkt von der konfigurierten Uhr laden und auswählen.
+- Übergangsdauer, Bewegungsrichtung und automatischen Anzeigenwechsel einstellen.
+- Helligkeit über Lichtsensor oder manuell von 0 bis 255 steuern.
+- Gemeinsame Steuerung ausdrücklich aktivieren; Einstellungen beim Übernehmen oder manuellen Senden abgleichen und nur Änderungen schreiben.
+- Einstellungen und Sensorausstattung vor dem Schreiben prüfen; normale Wertaktualisierungen schreiben keine Einstellungen.
+- PV- und Akku-Beispiele allgemein verständlich beschrieben, ohne Icon-IDs oder Verweise auf private Skripte.
+
 ## 0.8 – Einrichtung über IP-Adresse
 
 - Discovery-Modul wegen unzuverlässiger Gerätesuche entfernt.

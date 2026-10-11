@@ -24,6 +24,24 @@ Beispiel: Variable `22180`, Kennung `aussen`, Nachkommastellen `1`, Einheit ` °
 
 ## Verhalten
 
+### Icons abhängig vom Wert
+
+Im Abschnitt **Icons abhängig vom Wert** Regeln mit der gleichen Kennung wie die Anzeige hinzufügen. Jede Regel enthält eine Obergrenze und ein Icon. Die kleinste Obergrenze, die größer oder gleich dem Variablenwert ist, gewinnt; die Reihenfolge der Zeilen spielt keine Rolle. Oberhalb aller Grenzen gilt das normale Icon aus der Anzeigenliste. Regeln verwenden den ungerundeten numerischen Variablenwert, nicht den angezeigten Text. Für String- und boolesche Variablen bleibt das normale Icon aktiv. Eine Regel mit „Kein Icon“ blendet das Icon in diesem Bereich aus. Änderungen übernehmen.
+
+**PV:** Anzeige `pv`, normales Icon `pv` (bisher beispielsweise `53562`). Eine Regel `pv` / `0` / `no_pv` (bisher `58526`) zeigt bei null und negativen Werten das Nacht-Icon, bei positiven Werten das PV-Icon. Die Namen bzw. IDs müssen auf der neuen Uhr tatsächlich vorhanden sein.
+
+**Hausakku:** Anzeige `hausakku`, normales Icon `akku100` (bisher `56566`). Regeln:
+
+| Kennung | Obergrenze einschließlich | Icon aus deinem bisherigen Skript |
+|---|---:|---|
+| hausakku | 10 | akku00 / 58975 |
+| hausakku | 20 | akku20 / 56562 |
+| hausakku | 40 | akku40 / 56563 |
+| hausakku | 60 | akku60 / 56564 |
+| hausakku | 80 | akku80 / 56565 |
+
+Über 80 % wird das normale Icon `akku100` verwendet. Die Tabelle reproduziert die Schwellen deines bisherigen Skripts. Icons zuerst auf der NG-Uhr installieren und **Icons von Uhr laden** verwenden. Alte LaMetric-IDs sind Beispiele; entscheidend sind die Dateinamen auf der neuen Uhr. Regeln bleiben bei vorübergehend deaktivierten Anzeigen gespeichert und wirken wieder, sobald die Anzeige mit derselben Kennung aktiviert wird.
+
 ### AWTRIX-Hub-Galerie
 
 Die Galerie wird als externe Webseite geöffnet und nicht in das Symcon-Formular eingebettet. Der Hub übernimmt Anmeldung, Auswahl und Übertragung auf die Uhr. Symcon speichert dafür weder Hub-Passwort noch Hub-Schlüssel. Der Browser muss die Uhr im lokalen Netzwerk erreichen können. Die im Modul gespeicherten HTTP-Zugangsdaten werden nicht an den Hub übergeben. Der Galerie-Knopf ist für die TC001 (ESP32, 32×8) gefiltert. Nach erfolgreichem Import **Icons von Uhr laden** drücken; das lädt das Formular neu, deshalb vorher Änderungen übernehmen.
@@ -52,7 +70,7 @@ AWNG_UpdateDisplays(12345);
 
 ## Geplante Erweiterungen
 
-- Dynamische Akku-Icons, Bezug/Einspeisung und PV-Zustände.
+- Gemeinsame Anzeige für Bezug/Einspeisung aus zwei Variablen.
 - Icon-Vorschau und vereinfachte Icon-Installation.
 - Anzeige-Reihenfolge und weitere Formatierungsoptionen.
 - Später Prüfung für den Symcon Module Store.

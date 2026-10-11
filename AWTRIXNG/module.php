@@ -12,6 +12,7 @@ class AWTRIXNG extends IPSModule
         $this->RegisterPropertyString('Password', '');
         $this->RegisterPropertyInteger('Interval', 60);
         $this->RegisterPropertyString('Displays', '[]');
+        $this->RegisterPropertyString('IconRules', '[]');
         $this->RegisterPropertyBoolean('ManageBuiltins', false);
         foreach (['Time', 'Date', 'Temperature', 'Humidity', 'Battery'] as $name) {
             $this->RegisterPropertyBoolean('Builtin' . $name, in_array($name, ['Time', 'Date'], true));
@@ -81,6 +82,14 @@ class AWTRIXNG extends IPSModule
                 ['type' => 'NumberSpinner', 'name' => 'Interval', 'caption' => 'Regelmäßig aktualisieren (Sekunden)', 'minimum' => 10, 'maximum' => 3600],
                 ['type' => 'Label', 'caption' => 'Zuerst IP übernehmen, dann Icons laden. Kennung: 1–16 Buchstaben, Ziffern, _ oder -. Einheit inklusive Leerzeichen eingeben, z. B. " °C".'],
                 ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen', 'rowCount' => 8, 'add' => true, 'delete' => true, 'columns' => $columns],
+                ['type' => 'ExpansionPanel', 'caption' => 'Icons abhängig vom Wert', 'items' => [
+                    ['type' => 'Label', 'caption' => 'Kennung wie in der Anzeigenliste. Es gilt die kleinste passende Obergrenze (Wert kleiner oder gleich). Oberhalb aller Grenzen gilt das normale Icon der Anzeige. Ohne Regeln bleibt das Icon fest.'],
+                    ['type' => 'List', 'name' => 'IconRules', 'caption' => 'Icon-Regeln', 'rowCount' => 6, 'add' => true, 'delete' => true, 'columns' => [
+                        ['name' => 'Key', 'caption' => 'Anzeigekennung', 'width' => '200px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
+                        ['name' => 'Maximum', 'caption' => 'Wert bis einschließlich', 'width' => '180px', 'add' => 0, 'edit' => ['type' => 'NumberSpinner', 'digits' => 3]],
+                        ['name' => 'Icon', 'caption' => 'Icon', 'width' => '200px', 'add' => '', 'edit' => ['type' => 'Select', 'options' => $options]]
+                    ]]
+                ]],
                 ['type' => 'ExpansionPanel', 'caption' => 'Standardanzeigen der Uhr', 'items' => [
                     ['type' => 'CheckBox', 'name' => 'ManageBuiltins', 'caption' => 'Standardanzeigen über Symcon steuern'],
                     ['type' => 'Label', 'caption' => 'Bei aktivierter Steuerung erscheinen nur angehakte Standardanzeigen. Ohne Steuerung bleiben die Einstellungen auf der Uhr erhalten.'],
@@ -164,6 +173,7 @@ class AWTRIXNG extends IPSModule
         try {
             $base = $this->BaseURL();
             $rows = $this->Rows();
+            $rules = $this->IconRules();
             $this->SyncBuiltins();
             // Ownership is scoped to the host: never delete names on another clock.
             $all = json_decode($this->ReadAttributeString('Managed'), true) ?: [];
@@ -189,8 +199,9 @@ class AWTRIXNG extends IPSModule
                     'lifetimeMs' => max(10, $this->ReadPropertyInteger('Interval')) * 3000,
                     'lifetimeExpiry' => 'mark'
                 ];
-                if ($row['Icon'] !== '') {
-                    $payload['icon'] = $row['Icon'];
+                $icon = $this->SelectIcon($row, $value, $rules);
+                if ($icon !== '') {
+                    $payload['icon'] = $icon;
                 }
                 $this->Request('PUT', '/api/v1/apps/pushed/' . rawurlencode($name), $payload);
                 $wanted[] = $name;
@@ -229,6 +240,44 @@ class AWTRIXNG extends IPSModule
             $this->Failure($e);
             return false;
         }
+    }
+
+    private function IconRules(): array
+    {
+        $rules = json_decode($this->ReadPropertyString('IconRules'), true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($rules)) {
+            throw new InvalidArgumentException('Die Icon-Regeln sind ungültig.');
+        }
+        $seen = [];
+        foreach ($rules as $rule) {
+            if (!is_array($rule) || !isset($rule['Key'], $rule['Maximum'], $rule['Icon']) ||
+                !preg_match('/^[A-Za-z0-9_-]{1,16}$/D', $rule['Key']) ||
+                !is_numeric($rule['Maximum']) || !is_finite((float) $rule['Maximum']) || !is_string($rule['Icon'])) {
+                throw new InvalidArgumentException('Jede Icon-Regel benötigt eine Kennung, eine numerische Obergrenze und ein Icon.');
+            }
+            $key = $rule['Key'] . ':' . (string) (float) $rule['Maximum'];
+            if (isset($seen[$key])) {
+                throw new InvalidArgumentException('Doppelte Icon-Obergrenze für ' . $rule['Key']);
+            }
+            $seen[$key] = true;
+        }
+        usort($rules, static function (array $a, array $b): int {
+            return (float) $a['Maximum'] <=> (float) $b['Maximum'];
+        });
+        return $rules;
+    }
+
+    private function SelectIcon(array $row, $value, array $rules): string
+    {
+        // Compare raw numeric values, independently of displayed rounding or units.
+        if (is_int($value) || is_float($value)) {
+            foreach ($rules as $rule) {
+                if ($rule['Key'] === $row['Key'] && $value <= (float) $rule['Maximum']) {
+                    return $rule['Icon'];
+                }
+            }
+        }
+        return $row['Icon'];
     }
 
     private function Rows(): array

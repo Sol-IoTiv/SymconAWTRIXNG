@@ -117,6 +117,31 @@ $module->properties['ManageBuiltins'] = false;
 $before = count($requests);
 check($module->UpdateDisplays() && count($requests) === $before, 'Disabled management must leave clock alone');
 require __DIR__ . '/../AWTRIXNGDiscovery/module.php';
+$module->properties['Displays'] = json_encode([array_merge($row, ['Icon' => 'pv'])]);
+$module->properties['IconRules'] = json_encode([
+    ['Key' => 'aussen', 'Maximum' => 0, 'Icon' => 'no_pv']
+]);
+foreach ([[-0.1, 'no_pv'], [0, 'no_pv'], [0.001, 'pv']] as [$value, $expected]) {
+    $values[22180] = $value;
+    check($module->UpdateDisplays(), 'PV rule update failed');
+    check(end($requests)[2]['icon'] === $expected, 'PV zero boundary');
+}
+$module->properties['Displays'] = json_encode([array_merge($row, ['Icon' => 'akku100'])]);
+$module->properties['IconRules'] = json_encode([
+    ['Key' => 'aussen', 'Maximum' => 80, 'Icon' => 'akku80'],
+    ['Key' => 'aussen', 'Maximum' => 10, 'Icon' => 'akku00'],
+    ['Key' => 'aussen', 'Maximum' => 20, 'Icon' => 'akku20'],
+    ['Key' => 'aussen', 'Maximum' => 40, 'Icon' => 'akku40'],
+    ['Key' => 'aussen', 'Maximum' => 60, 'Icon' => 'akku60']
+]);
+foreach ([[0, 'akku00'], [10, 'akku00'], [10.1, 'akku20'], [20, 'akku20'], [20.1, 'akku40'], [40, 'akku40'], [40.1, 'akku60'], [60, 'akku60'], [60.1, 'akku80'], [80, 'akku80'], [80.1, 'akku100'], [100, 'akku100'], ['offline', 'akku100']] as [$value, $expected]) {
+    $values[22180] = $value;
+    check($module->UpdateDisplays(), 'Battery rule update failed');
+    check(end($requests)[2]['icon'] === $expected, 'Battery boundary ' . $value);
+}
+$module->properties['IconRules'] = '[{"Key":"aussen","Maximum":10,"Icon":"one"},{"Key":"aussen","Maximum":10,"Icon":"two"}]';
+$before = count($requests);
+check(!$module->UpdateDisplays() && count($requests) === $before, 'Duplicate thresholds must fail before sending');
 $parser = new ReflectionMethod(AWTRIXNGDiscovery::class, 'ParseReply');
 $parser->setAccessible(true);
 check($parser->invoke(null, 'kitchen-clock', '192.168.98.71:4210') === ['Name' => 'kitchen-clock', 'Host' => '192.168.98.71'], 'Discovery standard port');

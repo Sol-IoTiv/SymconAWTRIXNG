@@ -1,0 +1,11 @@
+{
+  "id": "{A872657B-C512-42D6-B13E-EAE02AD408B9}",
+  "name": "AWTRIXNG",
+  "type": 3,
+  "vendor": "Blueforcer",
+  "aliases": ["AWTRIX NG"],
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "AWNG"
+}

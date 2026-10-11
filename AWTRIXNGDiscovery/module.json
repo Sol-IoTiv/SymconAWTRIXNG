@@ -1,0 +1,11 @@
+{
+  "id": "{9BA3099D-E55F-4CB5-9CD1-24F0F50AABF4}",
+  "name": "AWTRIXNGDiscovery",
+  "type": 5,
+  "vendor": "Blueforcer",
+  "aliases": ["AWTRIX NG Gerätesuche"],
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "AWNGD"
+}

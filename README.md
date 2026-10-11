@@ -1,6 +1,31 @@
 # AWTRIX NG für IP-Symcon
 
-Lokale HTTP-Anbindung für AWTRIX NG, insbesondere auf der Ulanzi TC001. Kein MQTT-Broker notwendig. **Version 0.1 ist ein erster Teststand, noch nicht auf einer echten Symcon-Installation geprüft.** AWTRIX 3 wird nicht unterstützt.
+Mit diesem Modul zeigt eine AWTRIX-NG-Uhr Werte und Meldungen aus IP-Symcon an. Die Verbindung läuft lokal über HTTP; ein MQTT-Broker ist nicht erforderlich. Die Grundfunktionen werden auf einer Ulanzi TC001 im laufenden Betrieb getestet. AWTRIX 3 wird nicht unterstützt.
+
+Aktueller Entwicklungsstand: **0.7** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. Die automatische PHP-Testsuite und die Gerätesuche sind noch nicht abschließend geprüft. Es gibt noch keinen freigegebenen Stable-Release.
+
+## Funktionen
+
+- Gerätesuche im lokalen Netz oder manuelle Eingabe von IP-Adresse und Port.
+- Symcon-Variablen mit Text, Einheit, Nachkommastellen, Farbe, Icon und Anzeigedauer.
+- Aktualisierung bei Wertänderungen und regelmäßig; veraltete Werte werden markiert.
+- Standardanzeigen einzeln auswählen: Uhrzeit, Datum, Temperatur, Luftfeuchtigkeit und Batterie.
+- AWTRIX-Icon-Galerie öffnen, Icons auf der Uhr verwalten und in Symcon auswählen.
+- Dynamische Icon-Regeln, etwa für PV-Erzeugung und Akkustand.
+- Anzeigen per Drag-and-drop sortieren und die Reihenfolge auf die Uhr übertragen.
+- Verbindungstest, Testnachricht und Benachrichtigungen aus PHP-Skripten.
+
+[Änderungsverlauf](CHANGELOG.md) · [Ausführliche Anleitung](docs/ANLEITUNG.md)
+
+## Entwicklungsstände
+
+| Branch | Verwendung |
+|---|---|
+| `dev` | Aktuelle Entwicklung und Praxistests |
+| `beta-staging` | Teststand nach ausdrücklicher Freigabe per Pull Request |
+| `main` | Für freigegebene Versionen vorgesehen; derzeit noch Ausgangsstand |
+
+Neue Änderungen werden nur auf `dev` hochgeladen. Übernahmen nach `beta-staging` oder `main` erfolgen nach Freigabe über Pull Requests. Die Version in `library.json` beschreibt den jeweiligen Modulstand, noch keinen Store-Release.
 
 ## Einrichtung
 
@@ -12,7 +37,7 @@ Die Suche läuft auf dem Symcon-Server und verwendet das [AWTRIX-NG-Discovery-Pr
 
 ### Mit manueller IP-Adresse
 
-1. In der Symcon-Modulverwaltung `https://github.com/Sol-IoTiv/SymconAWTRIXNG` hinzufügen und für den Praxistest den Branch `beta-staging` auswählen. `dev` enthält laufende Entwicklung, `main` ist für freigegebene Versionen vorgesehen. Der erste Stand auf allen Branches ist noch ein ungetesteter Entwicklungsstand.
+1. In der Symcon-Modulverwaltung `https://github.com/Sol-IoTiv/SymconAWTRIXNG` hinzufügen und für die aktuellen Funktionen den Branch **`dev`** auswählen. Anschließend bei Änderungen in der Modulverwaltung aktualisieren.
 2. Instanz vom Typ **AWTRIX NG** erstellen.
 3. IP-Adresse oder Hostname der bereits ins WLAN eingebundenen Uhr eintragen, beispielsweise `192.168.98.50`. Kein `http://` und kein Pfad. Optional ist ein Port möglich.
 4. Falls in AWTRIX ein Webserver-Login aktiviert ist, dessen Benutzername und Passwort eintragen. Änderungen **übernehmen**.
@@ -74,12 +99,12 @@ AWNG_UpdateDisplays(12345);
 
 - Gemeinsame Anzeige für Bezug/Einspeisung aus zwei Variablen.
 - Icon-Vorschau und vereinfachte Icon-Installation.
-- Anzeige-Reihenfolge und weitere Formatierungsoptionen.
+- Weitere Formatierungsoptionen und frei platzierbare Standardanzeigen.
 - Später Prüfung für den Symcon Module Store.
 
 ## Technische Referenz
 
-IP-Symcon ab 7.0 mit PHP/cURL. Verwendet die AWTRIX-NG-API v1: `GET /api/v1/version`, `GET /api/v1/files?dir=/ICONS`, `PUT /api/v1/apps/pushed/{name}`, `DELETE /api/v1/apps/{name}` und `POST /api/v1/notifications`.
+IP-Symcon ab 7.0 mit PHP/cURL. Verwendet die AWTRIX-NG-API v1: `GET /api/v1/version`, `GET /api/v1/apps`, `GET /api/v1/files?dir=/ICONS`, `PUT /api/v1/apps/pushed/{name}`, `PUT /api/v1/apps/{name}/enabled`, `PUT /api/v1/apps/order`, `DELETE /api/v1/apps/{name}` und `POST /api/v1/notifications`. Für die Gerätesuche werden zusätzlich UDP-Ports 4210 und 4211 verwendet.
 
 - [AWTRIX NG Dokumentation](https://blueforcer.github.io/awtrix-ng/esp32/)
 - [HTTP API](https://blueforcer.github.io/awtrix-ng/esp32/reference/http/)

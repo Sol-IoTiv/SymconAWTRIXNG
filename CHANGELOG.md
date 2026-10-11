@@ -4,7 +4,7 @@ Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine S
 
 ## 0.20b – Akkustand als Statusvariable
 
-- Akkustand, Batteriespannung, Akkuwarnung und Gültigkeit der Akkudaten als Statusvariablen bereitstellen.
+- Akkustand in Prozent und Gültigkeit der Akkudaten als Statusvariablen bereitstellen. Zusätzliche Spannung und Akkuwarnung aus dem ersten Entwicklungsstand beim Übernehmen entfernen.
 - Akkudaten beim Übernehmen und anschließend alle 60 Sekunden unabhängig vom Anzeigenversand abfragen.
 - Bei fehlenden oder ungültigen Daten sowie Verbindungsfehlern alte Messwerte erhalten und als nicht aktuell kennzeichnen.
 

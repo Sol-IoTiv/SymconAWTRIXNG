@@ -38,8 +38,6 @@ class AWTRIXNG extends IPSModule
         $this->RegisterTimer('Refresh', 0, 'AWNG_UpdateDisplays($_IPS["TARGET"]);');
         $this->RegisterVariableString('LastError', 'Letzter Fehler', '', 0);
         $this->RegisterVariableInteger('BatteryPercent', 'Akkustand', '~Battery.100', 10);
-        $this->RegisterVariableFloat('BatteryVoltage', 'Batteriespannung', '~Volt', 11);
-        $this->RegisterVariableBoolean('LowBattery', 'Akku schwach', '~Alert', 12);
         $this->RegisterVariableBoolean('BatteryDataValid', 'Akkudaten aktuell', '~Switch', 13);
         $this->RegisterTimer('DeviceStatus', 0, 'AWNG_UpdateDeviceStatus($_IPS["TARGET"]);');
         $this->instanceAvailable = true;
@@ -49,6 +47,8 @@ class AWTRIXNG extends IPSModule
     {
         $this->acceptVariableUpdates = false;
         parent::ApplyChanges();
+        $this->UnregisterVariable('BatteryVoltage');
+        $this->UnregisterVariable('LowBattery');
         $this->instanceAvailable = true;
         foreach ($this->GetMessageList() as $sender => $messages) {
             if (in_array(VM_UPDATE, $messages, true)) {
@@ -336,17 +336,13 @@ class AWTRIXNG extends IPSModule
         try {
             $data = json_decode($this->Request('GET', '/api/v1/device'), true, 512, JSON_THROW_ON_ERROR);
             if (!is_array($data)
-                || !isset($data['batteryPercent'], $data['batteryVoltage'], $data['lowBattery'])
-                || !is_numeric($data['batteryPercent']) || !is_numeric($data['batteryVoltage'])
-                || !is_bool($data['lowBattery'])
-                || $data['batteryPercent'] < 0 || $data['batteryPercent'] > 100
-                || $data['batteryVoltage'] < 0) {
+                || !isset($data['batteryPercent'])
+                || !is_numeric($data['batteryPercent'])
+                || $data['batteryPercent'] < 0 || $data['batteryPercent'] > 100) {
                 throw new RuntimeException('Keine gültigen Akkudaten von der Uhr erhalten.');
             }
             // Publish validity last so automations can use the complete sample.
             $this->SetValue('BatteryDataValid', false);
-            $this->SetValue('BatteryVoltage', (float) $data['batteryVoltage']);
-            $this->SetValue('LowBattery', $data['lowBattery']);
             $this->SetValue('BatteryPercent', (int) $data['batteryPercent']);
             $this->SetValue('BatteryDataValid', true);
             return true;

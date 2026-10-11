@@ -1,6 +1,6 @@
 # AWTRIX NG für IP-Symcon
 
-Neu auf `dev` in **0.20b**: Akkustand, Batteriespannung, Akkuwarnung und „Akkudaten aktuell“ als Statusvariablen. Die Abfrage erfolgt alle 60 Sekunden. Damit lässt sich ein Schaltaktor über Symcon-Ereignisse steuern. Details: [Akkudaten](docs/ANLEITUNG.md#akkudaten-und-ladeautomatik).
+Neu auf `dev` in **0.20b**: Akkustand in Prozent und „Akkudaten aktuell“ als Statusvariablen. Die Abfrage erfolgt alle 60 Sekunden. Damit lässt sich ein Schaltaktor über Symcon-Ereignisse steuern. Details: [Akkudaten](docs/ANLEITUNG.md#akkudaten-und-ladeautomatik).
 
 Mit diesem Modul zeigt eine AWTRIX-NG-Uhr Werte und Meldungen aus IP-Symcon an. Die Verbindung läuft lokal über HTTP; ein MQTT-Broker ist nicht erforderlich. Die Grundfunktionen werden auf einer Ulanzi TC001 im laufenden Betrieb getestet. AWTRIX 3 wird nicht unterstützt.
 

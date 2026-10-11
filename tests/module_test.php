@@ -10,7 +10,7 @@ $values = [22180 => 18.4];
 $status = 200;
 $apps = [];
 $settings = [];
-$device = ['batteryPercent' => 75, 'batteryVoltage' => 3.95, 'lowBattery' => false];
+$device = ['batteryPercent' => 75];
 $capabilities = ['transitions' => ['Fade', 'Rain'], 'sensors' => ['light' => true], 'audio' => ['rtttl' => true]];
 function curl_init($url) { return (object) ['url' => $url, 'options' => []]; }
 function curl_setopt_array($handle, $options) { $handle->options = $options; }
@@ -59,6 +59,7 @@ class IPSModule {
     public $formUpdates = [];
     public function Create() {}
     public function ApplyChanges() {}
+    protected function UnregisterVariable($ident) { unset($this->variables[$ident]); }
     public function Destroy() {}
     protected function RegisterPropertyString($name, $value) { $this->properties[$name] = $value; }
     protected function RegisterPropertyInteger($name, $value) { $this->properties[$name] = $value; }
@@ -370,15 +371,14 @@ check(count($requests) === $before, 'Unloaded instance must not process queued v
 $status = 200;
 check($fresh->UpdateDeviceStatus(), 'Battery polling on reconstructed object');
 check($fresh->variables['BatteryPercent'] === 75, 'Battery percentage');
-check($fresh->variables['BatteryVoltage'] === 3.95, 'Battery voltage');
 check($fresh->variables['BatteryDataValid'] === true, 'Valid battery sample');
-$device = ['batteryPercent' => 0, 'batteryVoltage' => 3.1, 'lowBattery' => true];
+$device = ['batteryPercent' => 0];
 check($fresh->UpdateDeviceStatus(), 'Zero battery must be valid');
-check($fresh->variables['BatteryPercent'] === 0 && $fresh->variables['LowBattery'], 'Low battery sample');
+check($fresh->variables['BatteryPercent'] === 0, 'Low battery sample');
 $device = [];
 check(!$fresh->UpdateDeviceStatus(), 'Missing battery hardware must invalidate sample');
 check(!$fresh->variables['BatteryDataValid'], 'Missing battery validity');
-check($fresh->variables['BatteryVoltage'] === 3.1, 'Missing data must preserve previous sample');
+check($fresh->variables['BatteryPercent'] === 0, 'Missing data must preserve previous sample');
 $status = 503;
 check(!$fresh->UpdateDeviceStatus(), 'HTTP failure must invalidate sample');
 check(!$fresh->variables['BatteryDataValid'], 'HTTP error validity');

@@ -181,8 +181,6 @@ Ab Version 0.20b legt die Instanz folgende Statusvariablen an:
 | Variable | Bedeutung |
 | --- | --- |
 | Akkustand | Ladestand in Prozent (`BatteryPercent`) |
-| Batteriespannung | Spannung in Volt (`BatteryVoltage`) |
-| Akku schwach | Warnung der Uhr (`LowBattery`) |
 | Akkudaten aktuell | Letzte Abfrage hat gültige Akkudaten geliefert (`BatteryDataValid`) |
 
 Die Werte werden beim Übernehmen und danach alle 60 Sekunden über `/api/v1/device` gelesen, unabhängig vom Sendeintervall der Anzeigen. Eine sofortige Abfrage ist mit `AWNG_UpdateDeviceStatus(InstanzID)` möglich.

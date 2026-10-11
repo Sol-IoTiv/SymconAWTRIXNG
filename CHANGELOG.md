@@ -2,6 +2,11 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## Dokumentationspflege zu 0.18b
+
+- PayPal-Spendenlink auf https://paypal.me/pesensie umgestellt.
+- QR-Code für denselben PayPal.Me-Link erneuert.
+
 ## 0.18b – Beta-Teststand vorbereiten
 
 - Versionsnummer mit b als Beta kennzeichnen; Buildnummer auf 18 erhöhen.

@@ -171,7 +171,7 @@ Eigenständige Integration; kein offizielles Modul von Symcon, Ulanzi oder Bluef
 
 Wenn du die Weiterentwicklung unterstützen möchtest, kannst du das gerne tun:
 
-[![Spenden mit PayPal](imgs/paypal_logo.png)](https://www.paypal.com/donate/?business=PR9P7V7RMFHFQ&no_recurring=0&item_name=Spende+als+Dankesch%C3%B6n+f%C3%BCr+die+Modulentwicklung+Symcon&currency_code=EUR)
+[![Spenden mit PayPal](imgs/paypal_logo.png)](https://paypal.me/pesensie)
 
 ![QR-Code zur PayPal-Spende](imgs/paypal_qr.png)
 

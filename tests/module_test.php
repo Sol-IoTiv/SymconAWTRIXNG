@@ -10,7 +10,7 @@ $values = [22180 => 18.4];
 $status = 200;
 $apps = [];
 $settings = [];
-$capabilities = ['transitions' => ['Fade', 'Rain'], 'sensors' => ['light' => true]];
+$capabilities = ['transitions' => ['Fade', 'Rain'], 'sensors' => ['light' => true], 'audio' => ['rtttl' => true]];
 function curl_init($url) { return (object) ['url' => $url, 'options' => []]; }
 function curl_setopt_array($handle, $options) { $handle->options = $options; }
 function curl_setopt($handle, $key, $value) { $handle->options[$key] = $value; }
@@ -22,6 +22,9 @@ function curl_exec($handle) {
     }
     if (substr($handle->url, -12) === '/api/v1/apps') {
         return json_encode($apps);
+    }
+    if (strpos($handle->url, '/api/v1/audio/melodies') !== false) {
+        return '{"melodies":[{"name":"bell","valid":true},{"name":"broken","valid":false}]}';
     }
     if (substr($handle->url, -20) === '/api/v1/capabilities') {
         return json_encode($capabilities);
@@ -213,4 +216,55 @@ $module->properties['ManageAppearance'] = false;
 $before = count($requests);
 check($module->UpdateDisplays(true), 'Disabled appearance management');
 check(count($requests) === $before + 1, 'Disabled management must only read app order');
+// New content types need no variable and preserve the existing app ownership.
+$module->properties['Displays'] = json_encode([['Key' => 'message', 'Type' => 'text', 'Text' => 'Hallo aus Symcon', 'ScrollSpeed' => 80]]);
+check($module->UpdateDisplays(), 'Free text without variable');
+check(end($requests)[2]['text'] === 'Hallo aus Symcon', 'Free text content');
+check(end($requests)[2]['scroll'] === ['mode' => 'loop', 'whenFits' => 'scroll', 'speed' => 80], 'Forced continuous scrolling');
+$module->attributes['Managed'] = '{}';
+foreach (['yesterday' => 0, 'today' => 0, 'tomorrow' => 1, '+10 days' => 10] as $date => $days) {
+    $module->properties['Displays'] = json_encode([['Key' => 'count', 'Type' => 'countdown', 'EndDate' => (new DateTimeImmutable($date))->format('Y-m-d'), 'Suffix' => ' Tage']]);
+    check($module->UpdateDisplays(), 'Countdown update');
+    check(end($requests)[2]['text'] === $days . ' Tage', 'Countdown calendar days and integer formatting');
+}
+foreach (['2027-02-29', '2026-02-30', '24.12.2026', ''] as $invalidDate) {
+    $module->properties['Displays'] = json_encode([['Key' => 'count', 'Type' => 'countdown', 'EndDate' => $invalidDate]]);
+    $before = count($requests);
+    check(!$module->UpdateDisplays() && count($requests) === $before, 'Invalid date must fail before sending');
+}
+$previousTimezone = date_default_timezone_get();
+date_default_timezone_set('Europe/Vienna');
+$target = new DateTimeImmutable('2027-04-01');
+$expectedDays = max(0, (int) (new DateTimeImmutable('today'))->diff($target)->format('%r%a'));
+$module->properties['Displays'] = json_encode([['Key' => 'count', 'Type' => 'countdown', 'EndDate' => '2027-04-01']]);
+check($module->UpdateDisplays() && end($requests)[2]['text'] === (string) $expectedDays, 'Calendar calculation across DST');
+date_default_timezone_set($previousTimezone);
+$module->properties['Displays'] = '[]';
+$module->attributes['Managed'] = '{}';
+check($module->LoadSounds() === '1 Melodien geladen.', 'Only valid melodies are loaded');
+$module->properties['Sound'] = 'bell';
+check($module->PlaySound(), 'Play configured sound');
+check(end($requests)[2] === ['file' => 'bell'], 'Stored sound payload');
+check($module->NotifyWithSound('Fertig', '', 10), 'Notification with configured sound');
+check(end($requests)[2]['sound'] === ['file' => 'bell'], 'Notification sound payload');
+check($module->Notify('Leise'), 'Existing notification API remains silent');
+check(!isset(end($requests)[2]['sound']), 'No implicit sound in existing notifications');
+check($module->Notify('Andere Melodie', '', 5, 'other'), 'Explicit notification melody');
+check(end($requests)[2]['sound']['file'] === 'other', 'Explicit melody payload');
+check($module->StopSound() && end($requests)[2] === ['group' => 'alert'], 'Stop alerts only');
+$before = count($requests);
+check(!$module->PlaySound('../bad') && count($requests) === $before, 'Invalid sound name rejected');
+$module->properties['ManageAudio'] = true;
+$module->properties['Volume'] = 0;
+check($module->UpdateDisplays(true) && $settings['volume'] === 0, 'Mute master volume');
+$before = count($requests);
+check($module->UpdateDisplays(true), 'Unchanged audio sync');
+check(count(array_filter(array_slice($requests, $before), static function ($r) { return $r[0] === 'PATCH'; })) === 0, 'No repeated volume writes');
+$before = count($requests);
+check($module->UpdateDisplays() && count($requests) === $before, 'Timer must not play sounds or change volume');
+$module->properties['Volume'] = 101;
+$before = count($requests);
+check(!$module->UpdateDisplays(true) && count($requests) === $before, 'Invalid volume rejected');
+$capabilities['audio']['rtttl'] = false;
+check(strpos($module->LoadSounds(), 'keine Unterstützung') !== false, 'Unsupported sound hardware reported');
 echo "All module tests passed.\n";

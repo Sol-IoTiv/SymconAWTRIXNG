@@ -2,12 +2,15 @@
 
 Mit diesem Modul zeigt eine AWTRIX-NG-Uhr Werte und Meldungen aus IP-Symcon an. Die Verbindung läuft lokal über HTTP; ein MQTT-Broker ist nicht erforderlich. Die Grundfunktionen werden auf einer Ulanzi TC001 im laufenden Betrieb getestet. AWTRIX 3 wird nicht unterstützt.
 
-Aktueller Entwicklungsstand: **0.10** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
+Aktueller Entwicklungsstand: **0.11** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
 
 ## Funktionen
 
 - Einrichtung über IP-Adresse oder Hostname, optional mit Webport.
 - Symcon-Variablen mit Text, Einheit, Nachkommastellen, Farbe, Icon und Anzeigedauer.
+- Freier Text als kontinuierliche Laufschrift und Countdown bis zu einem Enddatum.
+- Gespeicherte Melodien auswählen, probehören, stoppen und mit Nachrichten senden.
+- Gesamtlautstärke über Symcon steuern oder stummschalten.
 - Aktualisierung bei Wertänderungen und regelmäßig; veraltete Werte werden markiert.
 - Standardanzeigen einzeln auswählen: Uhrzeit, Datum, Temperatur, Luftfeuchtigkeit und Batterie.
 - AWTRIX-Icon-Galerie öffnen, Icons auf der Uhr verwalten und in Symcon auswählen.
@@ -45,6 +48,51 @@ Ab Version 0.8 ist die Discovery-Suche entfernt. Bereits angelegte Instanzen **A
 Beispiel: Außentemperatur-Variable, Kennung `aussen`, Nachkommastellen `1`, Einheit ` °C`, Dauer `5`. Der Wert 18.4 erscheint als `18,4 °C`. Einheiten werden exakt angehängt; gewünschte Leerzeichen daher mit eingeben. Boolesche Variablen erscheinen als Ein/Aus, Stringvariablen unverändert. Variablenprofile werden nicht automatisch übernommen.
 
 Die Kennung ist im Hinzufügen- und Bearbeiten-Dialog einer Anzeige ein Pflichtfeld: 1–16 Zeichen, erlaubt sind A–Z, a–z, 0–9, Unterstrich und Bindestrich. Leere Kennungen und Leerzeichen werden durch die Formularvalidierung abgewiesen. In Icon-Regeln wird die Anzeige über ein Dropdown ausgewählt. Neue oder umbenannte Anzeigen zuerst übernehmen, damit die Auswahl aktualisiert wird. Auch deaktivierte Anzeigen sind auswählbar. Verweise auf entfernte Anzeigen bleiben mit „Anzeige fehlt“ sichtbar und können korrigiert oder gelöscht werden. Ohne angelegte Anzeigen ist das Hinzufügen von Icon-Regeln nicht verfügbar. Doppelte Anzeigenkennungen werden zusätzlich beim Übernehmen durch das Modul geprüft.
+
+## Laufschrift und Countdown
+
+Beide werden als normale Zeilen unter **Anzeigen** angelegt und können gemeinsam mit Variablenwerten sortiert werden. Bestehende Zeilen bleiben Variablenanzeigen.
+
+### Freien Text als Laufschrift anzeigen
+
+1. Eine Anzeige mit eindeutiger Kennung hinzufügen.
+2. Unter **Inhalt** den Typ **Laufschrift** auswählen.
+3. **Freier Text** ausfüllen. Eine Symcon-Variable wird dafür nicht benötigt.
+4. Optional Icon, Textfarbe, Text davor und danach einstellen. **Laufschrift-Tempo (%)**: 100 entspricht dem normalen Tempo, 50 ist halb so schnell, 200 doppelt so schnell.
+5. Genügend Anzeigedauer wählen und **Übernehmen** drücken.
+
+Der Text läuft kontinuierlich durch, auch wenn er auf das Display passen würde. Die Dauer begrenzt den Aufenthalt in der Rotation; bei langem Text entsprechend mehr Zeit wählen. Die Felder Variable und Enddatum werden bei diesem Typ ignoriert.
+
+### Verbleibende Tage anzeigen
+
+1. Eine Anzeige mit eindeutiger Kennung hinzufügen.
+2. Unter **Inhalt** den Typ **Countdown (Tage)** auswählen.
+3. **Enddatum** als `JJJJ-MM-TT` eingeben, zum Beispiel `2026-12-24`.
+4. Optional Text davor wie `Urlaub in ` und als Einheit ` Tage` eintragen. Icon, Farbe und Dauer nach Wunsch wählen.
+5. **Übernehmen** drücken.
+
+Gezählt werden Kalendertage in der Zeitzone des Symcon-Servers, keine angebrochenen 24-Stunden-Blöcke. Morgen ergibt 1, das Enddatum selbst 0. Vergangene Daten bleiben bei 0; negative Werte werden nicht angezeigt. Sommer-/Winterzeit verändert die Tageszählung nicht. Der Wert erscheint immer ohne Nachkommastellen. Ungültige Daten werden abgewiesen. Der Countdown wird beim regelmäßigen Senden neu berechnet, nach Mitternacht spätestens beim nächsten Intervall. Variable und freier Text werden bei diesem Typ ignoriert. Icon-Regeln können auch den berechneten Tageswert verwenden.
+
+## Töne und Lautstärke
+
+1. In der Weboberfläche der Uhr unter **Audio → Melodies** eine kurze Melodie anlegen und speichern. Der Buzzer verwendet RTTTL-Melodien; MP3 oder Sprache werden über diese Funktion nicht unterstützt.
+2. Im Modul **Melodien von Uhr laden** drücken. Ungespeicherte Änderungen vorher übernehmen, da das Formular neu geladen wird. Nur gültige gespeicherte Melodien werden übernommen.
+3. Unter **Töne und Lautstärke** eine Melodie auswählen und **Übernehmen** drücken.
+4. Mit **Ton probehören**, **Ton stoppen** und **Testnachricht mit Ton** testen. Stoppen beendet Alerts; Skriptmusik wird nicht gestoppt.
+
+Die Lautstärkesteuerung ist zunächst ausgeschaltet. **Lautstärke über Symcon steuern** aktivieren, Gesamtlautstärke 0 bis 100 einstellen und übernehmen. 0 schaltet die Uhr stumm. Die Einstellung gilt für die gesamte Uhr; der zusätzliche Alerts-Regler in AWTRIX wirkt ebenfalls. Nur geänderte Lautstärke wird beim Übernehmen oder mit **Anzeigen jetzt senden** übertragen. Beim Ausschalten der Steuerung bleibt die zuletzt gesetzte Lautstärke bestehen.
+
+Regelmäßige Anzeigenupdates lösen keine Töne aus. Bestehende Aufrufe von `AWNG_Notify` bleiben ohne Ton. Für die im Modul ausgewählte Melodie:
+
+```php
+AWNG_NotifyWithSound(12345, 'Waschmaschine fertig!', '', 10);
+AWNG_PlaySound(12345);            // ausgewählte Melodie
+AWNG_PlaySound(12345, 'klingel'); // gespeicherter Melodienname ohne .txt
+AWNG_StopSound(12345);           // laufenden Alert stoppen
+AWNG_Notify(12345, 'Türklingel', '', 10, 'klingel');
+```
+
+`12345` durch die eigene Instanz-ID ersetzen. **Kein Ton** lässt Nachrichten mit `AWNG_NotifyWithSound` stumm; Probehören benötigt eine ausgewählte Melodie. Fehlende Melodien oder stumme Regler können dazu führen, dass eine Nachricht ohne hörbaren Ton erscheint. Die Liste wird getrennt je Uhr gespeichert; nach einem Hostwechsel erneut laden. Ruhezeiten, eigene RTTTL-Eingabe im Modul und automatische Ereignisregeln sind noch nicht enthalten.
 
 ## Verhalten
 
@@ -111,7 +159,7 @@ AWNG_UpdateDisplays(12345);
 
 ## Technische Referenz
 
-IP-Symcon ab 7.0 mit PHP/cURL. Verwendet die AWTRIX-NG-API v1: `GET /api/v1/capabilities`, `GET /api/v1/settings`, `PATCH /api/v1/settings`, `GET /api/v1/version`, `GET /api/v1/apps`, `GET /api/v1/files?dir=/ICONS`, `PUT /api/v1/apps/pushed/{name}`, `PUT /api/v1/apps/{name}/enabled`, `PUT /api/v1/apps/order`, `DELETE /api/v1/apps/{name}` und `POST /api/v1/notifications`.
+IP-Symcon ab 7.0 mit PHP/cURL. Verwendet die AWTRIX-NG-API v1: `GET /api/v1/audio/melodies`, `POST /api/v1/audio/play`, `POST /api/v1/audio/stop`, `GET /api/v1/capabilities`, `GET /api/v1/settings`, `PATCH /api/v1/settings`, `GET /api/v1/version`, `GET /api/v1/apps`, `GET /api/v1/files?dir=/ICONS`, `PUT /api/v1/apps/pushed/{name}`, `PUT /api/v1/apps/{name}/enabled`, `PUT /api/v1/apps/order`, `DELETE /api/v1/apps/{name}` und `POST /api/v1/notifications`.
 
 - [AWTRIX NG Dokumentation](https://blueforcer.github.io/awtrix-ng/esp32/)
 - [HTTP API](https://blueforcer.github.io/awtrix-ng/esp32/reference/http/)

@@ -2,6 +2,16 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.11 – Töne, Laufschrift und Countdown
+
+- Anzeigen um die Inhaltstypen Laufschrift und Countdown erweitert; bestehende Variablenanzeigen bleiben erhalten.
+- Freien Text kontinuierlich mit einstellbarem Tempo scrollen.
+- Kalendertage bis zum Enddatum berechnen, am Enddatum und danach 0 anzeigen. Ungültige Daten abweisen und Zeitzone des Symcon-Servers berücksichtigen.
+- Gültige gespeicherte Buzzer-Melodien laden, auswählen, probehören und stoppen.
+- Nachrichten mit ausgewählter oder ausdrücklich angegebener Melodie senden. Bestehende Benachrichtigungsaufrufe bleiben stumm.
+- Optionale Gesamtlautstärke von 0 bis 100; nur Änderungen beim Übernehmen oder manuellen Senden schreiben.
+- Anleitung und Tests für Countdown-Grenzen, Sommerzeit, Laufschrift und Audiofunktionen ergänzt.
+
 ## 0.10 – Formular aufräumen
 
 - PayPal-Knopf aus dem Modulformular entfernt; Unterstützung bleibt über die README möglich.

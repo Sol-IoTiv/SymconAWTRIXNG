@@ -13,6 +13,10 @@ class AWTRIXNG extends IPSModule
         $this->RegisterPropertyInteger('Interval', 60);
         $this->RegisterPropertyString('Displays', '[]');
         $this->RegisterPropertyString('IconRules', '[]');
+        $this->RegisterPropertyBoolean('ManageAudio', false);
+        $this->RegisterPropertyInteger('Volume', 60);
+        $this->RegisterPropertyString('Sound', '');
+        $this->RegisterAttributeString('Melodies', '{}');
         $this->RegisterPropertyBoolean('ManageBuiltins', false);
         $this->RegisterPropertyBoolean('ManageAppearance', false);
         $this->RegisterPropertyBoolean('AutoTransition', true);
@@ -42,7 +46,7 @@ class AWTRIXNG extends IPSModule
         try {
             $this->BaseURL();
             foreach ($this->Rows() as $row) {
-                if ($row['Enabled']) {
+                if ($row['Enabled'] && $row['Type'] === 'variable') {
                     $this->RegisterMessage((int) $row['VariableID'], VM_UPDATE);
                 }
             }
@@ -78,6 +82,15 @@ class AWTRIXNG extends IPSModule
         foreach (json_decode($this->ReadAttributeString('Icons'), true) ?: [] as $icon) {
             $options[] = ['caption' => $icon, 'value' => $icon];
         }
+        $melodies = json_decode($this->ReadAttributeString('Melodies'), true) ?: [];
+        $soundOptions = [['caption' => 'Kein Ton', 'value' => '']];
+        foreach ($melodies[$hostKey] ?? [] as $name) {
+            $soundOptions[] = ['caption' => $name, 'value' => $name];
+        }
+        $selectedSound = $this->ReadPropertyString('Sound');
+        if ($selectedSound !== '' && !in_array($selectedSound, array_column($soundOptions, 'value'), true)) {
+            $soundOptions[] = ['caption' => $selectedSound . ' (neu laden)', 'value' => $selectedSound];
+        }
         $displayOptions = [];
         $displayKeys = [];
         foreach (json_decode($this->ReadPropertyString('Displays'), true) ?: [] as $display) {
@@ -104,7 +117,13 @@ class AWTRIXNG extends IPSModule
             ['name' => 'Decimals', 'caption' => 'Nachkommastellen', 'width' => '130px', 'add' => 1, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 0, 'maximum' => 6]],
             ['name' => 'Icon', 'caption' => 'Icon', 'width' => '160px', 'add' => '', 'edit' => ['type' => 'Select', 'options' => $options]],
             ['name' => 'Duration', 'caption' => 'Dauer (s)', 'width' => '100px', 'add' => 5, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 1, 'maximum' => 300]],
-            ['name' => 'Color', 'caption' => 'Textfarbe', 'width' => '120px', 'add' => 16777215, 'edit' => ['type' => 'SelectColor']]
+            ['name' => 'Color', 'caption' => 'Textfarbe', 'width' => '120px', 'add' => 16777215, 'edit' => ['type' => 'SelectColor']],
+            ['name' => 'Type', 'caption' => 'Inhalt', 'width' => '140px', 'add' => 'variable', 'edit' => ['type' => 'Select', 'options' => [
+                ['caption' => 'Variablenwert', 'value' => 'variable'], ['caption' => 'Laufschrift', 'value' => 'text'], ['caption' => 'Countdown (Tage)', 'value' => 'countdown']
+            ]]],
+            ['name' => 'Text', 'caption' => 'Freier Text (nur Laufschrift)', 'width' => '220px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
+            ['name' => 'EndDate', 'caption' => 'Enddatum (JJJJ-MM-TT, nur Countdown)', 'width' => '180px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
+            ['name' => 'ScrollSpeed', 'caption' => 'Laufschrift-Tempo (%)', 'width' => '130px', 'add' => 100, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 1, 'maximum' => 200]]
         ];
         return json_encode([
             'elements' => [
@@ -115,7 +134,7 @@ class AWTRIXNG extends IPSModule
                     ['type' => 'PasswordTextBox', 'name' => 'Password', 'caption' => 'Passwort']
                 ]],
                 ['type' => 'NumberSpinner', 'name' => 'Interval', 'caption' => 'Alle Anzeigen erneut senden (Sekunden)', 'minimum' => 10, 'maximum' => 3600],
-                ['type' => 'Label', 'caption' => 'Zuerst IP übernehmen, dann Icons laden. Kennung: 1–16 Buchstaben, Ziffern, _ oder -. Einheit inklusive Leerzeichen eingeben, z. B. " °C".'],
+                ['type' => 'Label', 'caption' => 'Zuerst IP übernehmen, dann Icons laden. Inhalt wählen: Variablenwert, Laufschrift oder Countdown. Nur die zum Inhalt passenden Felder ausfüllen. Countdown: Enddatum JJJJ-MM-TT, Einheit z. B. " Tage". Kennung: 1–16 Buchstaben, Ziffern, _ oder -. Leerzeichen vor Einheiten mit eingeben.'],
                 ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen (Reihenfolge per Drag-and-drop ändern, danach übernehmen)', 'rowCount' => 8, 'add' => true, 'delete' => true, 'changeOrder' => true, 'columns' => $columns],
                 ['type' => 'ExpansionPanel', 'caption' => 'Icons abhängig vom Wert', 'items' => [
                     ['type' => 'Label', 'caption' => 'Anzeige aus der Liste auswählen. Neue oder geänderte Anzeigen zuerst übernehmen. Es gilt die kleinste passende Obergrenze (Wert kleiner oder gleich). Oberhalb aller Grenzen gilt das normale Icon der Anzeige.'],
@@ -143,6 +162,13 @@ class AWTRIXNG extends IPSModule
                     ['type' => 'Select', 'name' => 'TransitionDirection', 'caption' => 'Bewegungsrichtung', 'options' => [['caption' => 'Normal', 'value' => 'normal'], ['caption' => 'Umgekehrt', 'value' => 'reverse']]],
                     ['type' => 'CheckBox', 'name' => 'AutoBrightness', 'caption' => 'Helligkeit automatisch über den Lichtsensor'],
                     ['type' => 'NumberSpinner', 'name' => 'Brightness', 'caption' => 'Manuelle Helligkeit (0–255, nur bei ausgeschalteter Automatik)', 'minimum' => 0, 'maximum' => 255]
+                ]],
+                ['type' => 'ExpansionPanel', 'caption' => 'Töne und Lautstärke', 'items' => [
+                    ['type' => 'Label', 'caption' => 'Melodien in der Audio-Seite der Uhr anlegen, dann hier laden. Auswahl und Lautstärke zuerst übernehmen. Der Ton wird nur beim Probehören oder einer ausdrücklich mit Ton gesendeten Nachricht abgespielt.'],
+                    ['type' => 'Select', 'name' => 'Sound', 'caption' => 'Melodie für Test und Nachrichten mit Ton', 'options' => $soundOptions],
+                    ['type' => 'CheckBox', 'name' => 'ManageAudio', 'caption' => 'Lautstärke über Symcon steuern'],
+                    ['type' => 'NumberSpinner', 'name' => 'Volume', 'caption' => 'Gesamtlautstärke (0–100, 0 = stumm)', 'minimum' => 0, 'maximum' => 100],
+                    ['type' => 'Label', 'caption' => 'Die Gesamtlautstärke gilt für die gesamte Uhr. Der zusätzliche Alerts-Regler in AWTRIX beeinflusst die hörbare Lautstärke ebenfalls.']
                 ]]
             ],
             'actions' => [
@@ -152,6 +178,10 @@ class AWTRIXNG extends IPSModule
                 ['type' => 'Button', 'caption' => 'Icons auf der Uhr verwalten', 'link' => true, 'onClick' => 'echo AWNG_GetIconsURL($id);'],
                 ['type' => 'Label', 'caption' => 'In der Galerie anmelden, Icon öffnen und mit Send to AWTRIX auf die Uhr übertragen. Danach hier Icons von Uhr laden und in der Anzeigenzeile auswählen. Änderungen vorher übernehmen.'],
                 ['type' => 'Button', 'caption' => 'Icons von Uhr laden', 'onClick' => 'echo AWNG_LoadIcons($id);'],
+                ['type' => 'Button', 'caption' => 'Melodien von Uhr laden', 'onClick' => 'echo AWNG_LoadSounds($id);'],
+                ['type' => 'Button', 'caption' => 'Ton probehören', 'onClick' => 'AWNG_PlaySound($id);'],
+                ['type' => 'Button', 'caption' => 'Ton stoppen', 'onClick' => 'AWNG_StopSound($id);'],
+                ['type' => 'Button', 'caption' => 'Testnachricht mit Ton', 'onClick' => 'AWNG_NotifyWithSound($id, "Hallo von Symcon!", "", 5);'],
                 ['type' => 'Button', 'caption' => 'Testnachricht', 'onClick' => 'AWNG_Notify($id, "Hallo von Symcon!", "", 5);'],
                 ['type' => 'Button', 'caption' => 'Anzeigen jetzt senden', 'onClick' => 'AWNG_UpdateDisplays($id, true);'],
             ],
@@ -296,6 +326,7 @@ class AWTRIXNG extends IPSModule
             $rows = $this->Rows();
             $rules = $this->IconRules();
             if ($SyncOrder) {
+                $this->SyncAudio();
                 $this->SyncAppearance();
             }
             $this->SyncBuiltins();
@@ -308,11 +339,17 @@ class AWTRIXNG extends IPSModule
                     continue;
                 }
                 $name = 'ips_' . $this->InstanceID . '_' . $row['Key'];
-                $value = GetValue((int) $row['VariableID']);
+                if ($row['Type'] === 'text') {
+                    $value = $row['Text'];
+                } elseif ($row['Type'] === 'countdown') {
+                    $value = $this->RemainingDays($row['EndDate']);
+                } else {
+                    $value = GetValue((int) $row['VariableID']);
+                }
                 if (is_bool($value)) {
                     $text = $value ? 'Ein' : 'Aus';
                 } elseif (is_int($value) || is_float($value)) {
-                    $text = number_format((float) $value, (int) $row['Decimals'], ',', '');
+                    $text = number_format((float) $value, ($row['Type'] === 'countdown' ? 0 : (int) $row['Decimals']), ',', '');
                 } else {
                     $text = (string) $value;
                 }
@@ -323,6 +360,9 @@ class AWTRIXNG extends IPSModule
                     'lifetimeMs' => max(10, $this->ReadPropertyInteger('Interval')) * 3000,
                     'lifetimeExpiry' => 'mark'
                 ];
+                if ($row['Type'] === 'text') {
+                    $payload['scroll'] = ['mode' => 'loop', 'whenFits' => 'scroll', 'speed' => (int) $row['ScrollSpeed']];
+                }
                 $icon = $this->SelectIcon($row, $value, $rules);
                 if ($icon !== '') {
                     $payload['icon'] = $icon;
@@ -353,12 +393,16 @@ class AWTRIXNG extends IPSModule
         }
     }
 
-    public function Notify(string $Text, string $Icon = '', int $Duration = 5): bool
+    public function Notify(string $Text, string $Icon = '', int $Duration = 5, string $Sound = ''): bool
     {
         try {
             $payload = ['text' => $Text, 'durationMs' => max(1, min(300, $Duration)) * 1000];
             if ($Icon !== '') {
                 $payload['icon'] = $Icon;
+            }
+            if ($Sound !== '') {
+                $this->ValidateSound($Sound);
+                $payload['sound'] = ['file' => $Sound];
             }
             $this->Request('POST', '/api/v1/notifications', $payload);
             $this->Success();
@@ -366,6 +410,106 @@ class AWTRIXNG extends IPSModule
         } catch (Throwable $e) {
             $this->Failure($e);
             return false;
+        }
+    }
+
+    private function RemainingDays(string $endDate): int
+    {
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $endDate);
+        if (!$date || $date->format('Y-m-d') !== $endDate) {
+            throw new InvalidArgumentException('Enddatum als JJJJ-MM-TT eingeben, zum Beispiel 2026-12-24.');
+        }
+        // Calendar days in the Symcon server timezone, including DST changes.
+        $today = new DateTimeImmutable('today');
+        return max(0, (int) $today->diff($date)->format('%r%a'));
+    }
+
+    public function LoadSounds(): string
+    {
+        try {
+            $capabilities = json_decode($this->Request('GET', '/api/v1/capabilities'), true, 512, JSON_THROW_ON_ERROR);
+            if (empty($capabilities['audio']['rtttl'])) {
+                throw new RuntimeException('Diese Uhr meldet keine Unterstützung für Buzzer-Melodien.');
+            }
+            $result = json_decode($this->Request('GET', '/api/v1/audio/melodies'), true, 512, JSON_THROW_ON_ERROR);
+            if (!isset($result['melodies']) || !is_array($result['melodies'])) {
+                throw new RuntimeException('Ungültige Melodienliste von der Uhr.');
+            }
+            $names = [];
+            foreach ($result['melodies'] as $melody) {
+                if (($melody['valid'] ?? false) === true) {
+                    $name = (string) ($melody['name'] ?? '');
+                    $this->ValidateSound($name);
+                    $names[] = $name;
+                }
+            }
+            $names = array_values(array_unique($names));
+            sort($names, SORT_NATURAL);
+            $all = json_decode($this->ReadAttributeString('Melodies'), true) ?: [];
+            $all[$this->BaseURL()] = $names;
+            $this->WriteAttributeString('Melodies', json_encode($all, JSON_THROW_ON_ERROR));
+            $this->Success();
+            $this->ReloadForm();
+            return count($names) . ' Melodien geladen.';
+        } catch (Throwable $e) {
+            $this->Failure($e);
+            return $e->getMessage();
+        }
+    }
+
+    private function ValidateSound(string $name): void
+    {
+        if (!preg_match('/^[A-Za-z0-9_-]{1,32}$/D', $name)) {
+            throw new InvalidArgumentException('Melodiennamen ohne Dateiendung verwenden (1–32 Buchstaben, Ziffern, _ oder -).');
+        }
+    }
+
+    public function PlaySound(string $Sound = ''): bool
+    {
+        try {
+            $name = $Sound !== '' ? $Sound : $this->ReadPropertyString('Sound');
+            $this->ValidateSound($name);
+            $this->Request('POST', '/api/v1/audio/play', ['file' => $name]);
+            $this->Success();
+            return true;
+        } catch (Throwable $e) {
+            $this->Failure($e);
+            return false;
+        }
+    }
+
+    public function StopSound(): bool
+    {
+        try {
+            $this->Request('POST', '/api/v1/audio/stop', ['group' => 'alert']);
+            $this->Success();
+            return true;
+        } catch (Throwable $e) {
+            $this->Failure($e);
+            return false;
+        }
+    }
+
+    public function NotifyWithSound(string $Text, string $Icon = '', int $Duration = 5): bool
+    {
+        return $this->Notify($Text, $Icon, $Duration, $this->ReadPropertyString('Sound'));
+    }
+
+    private function SyncAudio(): void
+    {
+        if (!$this->ReadPropertyBoolean('ManageAudio')) {
+            return;
+        }
+        $volume = $this->ReadPropertyInteger('Volume');
+        if ($volume < 0 || $volume > 100) {
+            throw new InvalidArgumentException('Lautstärke muss zwischen 0 und 100 liegen.');
+        }
+        $settings = json_decode($this->Request('GET', '/api/v1/settings'), true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($settings)) {
+            throw new RuntimeException('Ungültige Einstellungen von der Uhr.');
+        }
+        if (($settings['volume'] ?? null) !== $volume) {
+            $this->Request('PATCH', '/api/v1/settings', ['volume' => $volume]);
         }
     }
 
@@ -453,7 +597,7 @@ class AWTRIXNG extends IPSModule
         }
         $keys = [];
         foreach ($rows as &$row) {
-            $row += ['Enabled' => true, 'Key' => '', 'VariableID' => 0, 'Prefix' => '', 'Suffix' => '', 'Decimals' => 1, 'Icon' => '', 'Duration' => 5, 'Color' => 16777215];
+            $row += ['Enabled' => true, 'Key' => '', 'VariableID' => 0, 'Prefix' => '', 'Suffix' => '', 'Decimals' => 1, 'Icon' => '', 'Duration' => 5, 'Color' => 16777215, 'Type' => 'variable', 'Text' => '', 'EndDate' => '', 'ScrollSpeed' => 100];
             if (!$row['Enabled']) {
                 continue;
             }
@@ -461,7 +605,16 @@ class AWTRIXNG extends IPSModule
                 throw new InvalidArgumentException('Jede aktive Anzeige benötigt eine eindeutige Kennung (1–16 Zeichen).');
             }
             $keys[$row['Key']] = true;
-            if (!IPS_VariableExists((int) $row['VariableID'])) {
+            if (!in_array($row['Type'], ['variable', 'text', 'countdown'], true)) {
+                throw new InvalidArgumentException('Ungültiger Inhaltstyp: ' . $row['Key']);
+            }
+            if ($row['Type'] === 'text' && (!is_string($row['Text']) || trim($row['Text']) === '' || $row['ScrollSpeed'] < 1 || $row['ScrollSpeed'] > 200)) {
+                throw new InvalidArgumentException('Laufschrift benötigt Text und ein Tempo von 1 bis 200 Prozent: ' . $row['Key']);
+            }
+            if ($row['Type'] === 'countdown') {
+                $this->RemainingDays($row['EndDate']);
+            }
+            if ($row['Type'] === 'variable' && !IPS_VariableExists((int) $row['VariableID'])) {
                 throw new InvalidArgumentException('Variable fehlt für Anzeige ' . $row['Key']);
             }
             if ($row['Decimals'] < 0 || $row['Decimals'] > 6 || $row['Duration'] < 1 || $row['Duration'] > 300 || $row['Color'] < 0 || $row['Color'] > 16777215) {

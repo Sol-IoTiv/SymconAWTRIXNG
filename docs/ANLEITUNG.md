@@ -22,7 +22,11 @@ Unter **Anzeigen** auf **Hinzufügen** klicken:
 |---|---|
 | Aktiv | Zeile anzeigen; ausgeschaltete Zeilen bleiben konfiguriert |
 | Kennung | Eindeutiger Name, etwa `warmwasser`; 1–16 Zeichen aus A–Z, a–z, 0–9, _ und - |
-| Variable | Die Symcon-Variable mit dem gewünschten Wert |
+| Inhalt | Variablenwert, Laufschrift oder Countdown (Tage) |
+| Variable | Nur für Variablenwert erforderlich |
+| Freier Text | Text für Laufschrift |
+| Enddatum | Nur für Countdown, als JJJJ-MM-TT |
+| Laufschrift-Tempo | 1 bis 200 Prozent, Standard 100 |
 | Text davor | Optionaler Text vor dem Wert |
 | Einheit / Text danach | Beispielsweise ` °C`, ` kW` oder ` %`; Leerzeichen mit eingeben |
 | Nachkommastellen | 0 bis 6; gilt für numerische Variablen |
@@ -31,6 +35,51 @@ Unter **Anzeigen** auf **Hinzufügen** klicken:
 | Textfarbe | Farbe des angezeigten Texts |
 
 **Übernehmen** sendet die Anzeigen. Zahlen erhalten ein Dezimalkomma, boolesche Werte erscheinen als Ein/Aus und Strings unverändert. Symcon-Variablenprofile werden nicht automatisch übernommen.
+
+## Laufschrift und Countdown
+
+Beide werden als normale Zeilen unter **Anzeigen** angelegt und können gemeinsam mit Variablenwerten sortiert werden. Bestehende Zeilen bleiben Variablenanzeigen.
+
+### Freien Text als Laufschrift anzeigen
+
+1. Eine Anzeige mit eindeutiger Kennung hinzufügen.
+2. Unter **Inhalt** den Typ **Laufschrift** auswählen.
+3. **Freier Text** ausfüllen. Eine Symcon-Variable wird dafür nicht benötigt.
+4. Optional Icon, Textfarbe, Text davor und danach einstellen. **Laufschrift-Tempo (%)**: 100 entspricht dem normalen Tempo, 50 ist halb so schnell, 200 doppelt so schnell.
+5. Genügend Anzeigedauer wählen und **Übernehmen** drücken.
+
+Der Text läuft kontinuierlich durch, auch wenn er auf das Display passen würde. Die Dauer begrenzt den Aufenthalt in der Rotation; bei langem Text entsprechend mehr Zeit wählen. Die Felder Variable und Enddatum werden bei diesem Typ ignoriert.
+
+### Verbleibende Tage anzeigen
+
+1. Eine Anzeige mit eindeutiger Kennung hinzufügen.
+2. Unter **Inhalt** den Typ **Countdown (Tage)** auswählen.
+3. **Enddatum** als `JJJJ-MM-TT` eingeben, zum Beispiel `2026-12-24`.
+4. Optional Text davor wie `Urlaub in ` und als Einheit ` Tage` eintragen. Icon, Farbe und Dauer nach Wunsch wählen.
+5. **Übernehmen** drücken.
+
+Gezählt werden Kalendertage in der Zeitzone des Symcon-Servers, keine angebrochenen 24-Stunden-Blöcke. Morgen ergibt 1, das Enddatum selbst 0. Vergangene Daten bleiben bei 0; negative Werte werden nicht angezeigt. Sommer-/Winterzeit verändert die Tageszählung nicht. Der Wert erscheint immer ohne Nachkommastellen. Ungültige Daten werden abgewiesen. Der Countdown wird beim regelmäßigen Senden neu berechnet, nach Mitternacht spätestens beim nächsten Intervall. Variable und freier Text werden bei diesem Typ ignoriert. Icon-Regeln können auch den berechneten Tageswert verwenden.
+
+## Töne und Lautstärke
+
+1. In der Weboberfläche der Uhr unter **Audio → Melodies** eine kurze Melodie anlegen und speichern. Der Buzzer verwendet RTTTL-Melodien; MP3 oder Sprache werden über diese Funktion nicht unterstützt.
+2. Im Modul **Melodien von Uhr laden** drücken. Ungespeicherte Änderungen vorher übernehmen, da das Formular neu geladen wird. Nur gültige gespeicherte Melodien werden übernommen.
+3. Unter **Töne und Lautstärke** eine Melodie auswählen und **Übernehmen** drücken.
+4. Mit **Ton probehören**, **Ton stoppen** und **Testnachricht mit Ton** testen. Stoppen beendet Alerts; Skriptmusik wird nicht gestoppt.
+
+Die Lautstärkesteuerung ist zunächst ausgeschaltet. **Lautstärke über Symcon steuern** aktivieren, Gesamtlautstärke 0 bis 100 einstellen und übernehmen. 0 schaltet die Uhr stumm. Die Einstellung gilt für die gesamte Uhr; der zusätzliche Alerts-Regler in AWTRIX wirkt ebenfalls. Nur geänderte Lautstärke wird beim Übernehmen oder mit **Anzeigen jetzt senden** übertragen. Beim Ausschalten der Steuerung bleibt die zuletzt gesetzte Lautstärke bestehen.
+
+Regelmäßige Anzeigenupdates lösen keine Töne aus. Bestehende Aufrufe von `AWNG_Notify` bleiben ohne Ton. Für die im Modul ausgewählte Melodie:
+
+```php
+AWNG_NotifyWithSound(12345, 'Waschmaschine fertig!', '', 10);
+AWNG_PlaySound(12345);            // ausgewählte Melodie
+AWNG_PlaySound(12345, 'klingel'); // gespeicherter Melodienname ohne .txt
+AWNG_StopSound(12345);           // laufenden Alert stoppen
+AWNG_Notify(12345, 'Türklingel', '', 10, 'klingel');
+```
+
+`12345` durch die eigene Instanz-ID ersetzen. **Kein Ton** lässt Nachrichten mit `AWNG_NotifyWithSound` stumm; Probehören benötigt eine ausgewählte Melodie. Fehlende Melodien oder stumme Regler können dazu führen, dass eine Nachricht ohne hörbaren Ton erscheint. Die Liste wird getrennt je Uhr gespeichert; nach einem Hostwechsel erneut laden. Ruhezeiten, eigene RTTTL-Eingabe im Modul und automatische Ereignisregeln sind noch nicht enthalten.
 
 ## 4. Icons installieren
 

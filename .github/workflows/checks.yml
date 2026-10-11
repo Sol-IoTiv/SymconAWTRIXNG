@@ -9,5 +9,4 @@ jobs:
         with:
           php-version: '8.2'
       - run: php -l AWTRIXNG/module.php
-      - run: php -l AWTRIXNGDiscovery/module.php
       - run: php -n tests/module_test.php

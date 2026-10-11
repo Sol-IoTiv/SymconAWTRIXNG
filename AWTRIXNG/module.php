@@ -45,6 +45,7 @@ class AWTRIXNG extends IPSModule
             $this->SetTimerInterval('Refresh', 0);
             $this->Failure($e);
         }
+        $this->ReloadForm();
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
@@ -59,6 +60,23 @@ class AWTRIXNG extends IPSModule
         $options = [['caption' => 'Kein Icon', 'value' => '']];
         foreach (json_decode($this->ReadAttributeString('Icons'), true) ?: [] as $icon) {
             $options[] = ['caption' => $icon, 'value' => $icon];
+        }
+        $displayOptions = [];
+        $displayKeys = [];
+        foreach (json_decode($this->ReadPropertyString('Displays'), true) ?: [] as $display) {
+            $key = (string) ($display['Key'] ?? '');
+            if (preg_match('/^[A-Za-z0-9_-]{1,16}$/D', $key) && !isset($displayKeys[$key])) {
+                $displayKeys[$key] = true;
+                $displayOptions[] = ['caption' => $key, 'value' => $key];
+            }
+        }
+        // Keep old references visible when their display was renamed or removed.
+        foreach (json_decode($this->ReadPropertyString('IconRules'), true) ?: [] as $rule) {
+            $key = (string) ($rule['Key'] ?? '');
+            if ($key !== '' && !isset($displayKeys[$key])) {
+                $displayKeys[$key] = true;
+                $displayOptions[] = ['caption' => $key . ' (Anzeige fehlt)', 'value' => $key];
+            }
         }
         $columns = [
             ['name' => 'Enabled', 'caption' => 'Aktiv', 'width' => '65px', 'add' => true, 'edit' => ['type' => 'CheckBox']],
@@ -83,9 +101,9 @@ class AWTRIXNG extends IPSModule
                 ['type' => 'Label', 'caption' => 'Zuerst IP übernehmen, dann Icons laden. Kennung: 1–16 Buchstaben, Ziffern, _ oder -. Einheit inklusive Leerzeichen eingeben, z. B. " °C".'],
                 ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen', 'rowCount' => 8, 'add' => true, 'delete' => true, 'columns' => $columns],
                 ['type' => 'ExpansionPanel', 'caption' => 'Icons abhängig vom Wert', 'items' => [
-                    ['type' => 'Label', 'caption' => 'Kennung wie in der Anzeigenliste. Es gilt die kleinste passende Obergrenze (Wert kleiner oder gleich). Oberhalb aller Grenzen gilt das normale Icon der Anzeige. Ohne Regeln bleibt das Icon fest.'],
-                    ['type' => 'List', 'name' => 'IconRules', 'caption' => 'Icon-Regeln', 'rowCount' => 6, 'add' => true, 'delete' => true, 'columns' => [
-                        ['name' => 'Key', 'caption' => 'Anzeigekennung (Pflichtfeld)', 'width' => '200px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox', 'validate' => '^[A-Za-z0-9_-]{1,16}$']],
+                    ['type' => 'Label', 'caption' => 'Anzeige aus der Liste auswählen. Neue oder geänderte Anzeigen zuerst übernehmen. Es gilt die kleinste passende Obergrenze (Wert kleiner oder gleich). Oberhalb aller Grenzen gilt das normale Icon der Anzeige.'],
+                    ['type' => 'List', 'name' => 'IconRules', 'caption' => 'Icon-Regeln', 'rowCount' => 6, 'add' => count($displayOptions) > 0, 'delete' => true, 'columns' => [
+                        ['name' => 'Key', 'caption' => 'Anzeige', 'width' => '200px', 'add' => $displayOptions[0]['value'] ?? '', 'edit' => ['type' => 'Select', 'options' => $displayOptions]],
                         ['name' => 'Maximum', 'caption' => 'Wert bis einschließlich', 'width' => '180px', 'add' => 0, 'edit' => ['type' => 'NumberSpinner', 'digits' => 3]],
                         ['name' => 'Icon', 'caption' => 'Icon', 'width' => '200px', 'add' => '', 'edit' => ['type' => 'Select', 'options' => $options]]
                     ]]

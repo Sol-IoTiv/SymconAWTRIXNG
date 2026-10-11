@@ -22,7 +22,7 @@ Die Suche läuft auf dem Symcon-Server und verwendet das [AWTRIX-NG-Discovery-Pr
 
 Beispiel: Variable `22180`, Kennung `aussen`, Nachkommastellen `1`, Einheit ` °C`, Dauer `5`. Der Wert 18.4 erscheint als `18,4 °C`. Einheiten werden exakt angehängt; gewünschte Leerzeichen daher mit eingeben. Boolesche Variablen erscheinen als Ein/Aus, Stringvariablen unverändert. Variablenprofile werden nicht automatisch übernommen.
 
-Die Kennung ist im Hinzufügen- und Bearbeiten-Dialog ein Pflichtfeld: 1–16 Zeichen, erlaubt sind A–Z, a–z, 0–9, Unterstrich und Bindestrich. Leere Kennungen und Leerzeichen werden durch die Formularvalidierung abgewiesen. Das gilt auch für die Anzeigekennung in Icon-Regeln. Doppelte Anzeigenkennungen werden zusätzlich beim Übernehmen durch das Modul geprüft.
+Die Kennung ist im Hinzufügen- und Bearbeiten-Dialog einer Anzeige ein Pflichtfeld: 1–16 Zeichen, erlaubt sind A–Z, a–z, 0–9, Unterstrich und Bindestrich. Leere Kennungen und Leerzeichen werden durch die Formularvalidierung abgewiesen. In Icon-Regeln wird die Anzeige über ein Dropdown ausgewählt. Neue oder umbenannte Anzeigen zuerst übernehmen, damit die Auswahl aktualisiert wird. Auch deaktivierte Anzeigen sind auswählbar. Verweise auf entfernte Anzeigen bleiben mit „Anzeige fehlt“ sichtbar und können korrigiert oder gelöscht werden. Ohne angelegte Anzeigen ist das Hinzufügen von Icon-Regeln nicht verfügbar. Doppelte Anzeigenkennungen werden zusätzlich beim Übernehmen durch das Modul geprüft.
 
 ## Verhalten
 

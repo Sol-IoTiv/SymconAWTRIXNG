@@ -98,6 +98,13 @@ foreach (['', ' ', 'mit leerzeichen', 'ä', str_repeat('a', 17)] as $invalidKey)
     check(preg_match($keyPattern, $invalidKey) === 0, 'Invalid key must be rejected by form');
 }
 check(preg_match($keyPattern, 'pv_akku-1') === 1, 'Valid key must be accepted by form');
+$ruleSelect = $form['elements'][6]['items'][1]['columns'][0]['edit'];
+check($ruleSelect['type'] === 'Select', 'Icon rule display must be a dropdown');
+check($ruleSelect['options'] === [['caption' => 'aussen', 'value' => 'aussen']], 'Dropdown must list saved displays');
+$module->properties['IconRules'] = '[{"Key":"removed","Maximum":0,"Icon":""}]';
+$orphanForm = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ERROR);
+check($orphanForm['elements'][6]['items'][1]['columns'][0]['edit']['options'][1]['caption'] === 'removed (Anzeige fehlt)', 'Preserve missing display references');
+$module->properties['IconRules'] = '[]';
 $module->properties['Host'] = '192.168.98.51/path';
 check(!$module->Notify('Test'), 'Host paths must be rejected');
 $module->properties['Host'] = '192.168.98.51';

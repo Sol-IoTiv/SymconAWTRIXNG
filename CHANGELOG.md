@@ -2,6 +2,11 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## Korrekturen zu 0.18b
+
+- Bestehende Skriptaufrufe mit `AWNG_UpdateDisplays(InstanzID)` bleiben kompatibel.
+- `AWNG_SyncDisplays(InstanzID)` sendet zusätzlich die gespeicherte Reihenfolge und Uhreinstellungen.
+
 ## Dokumentationspflege zu 0.18b
 
 - PayPal-Spendenlink auf https://paypal.me/pesensie umgestellt.

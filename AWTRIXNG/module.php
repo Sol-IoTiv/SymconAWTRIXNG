@@ -33,7 +33,7 @@ class AWTRIXNG extends IPSModule
         }
         $this->RegisterAttributeString('Icons', '[]');
         $this->RegisterAttributeString('Managed', '{}');
-        $this->RegisterTimer('Refresh', 0, 'AWNG_UpdateDisplays($_IPS["TARGET"], false);');
+        $this->RegisterTimer('Refresh', 0, 'AWNG_UpdateDisplays($_IPS["TARGET"]);');
         $this->RegisterVariableString('LastError', 'Letzter Fehler', '', 0);
         $this->instanceAvailable = true;
     }
@@ -57,7 +57,7 @@ class AWTRIXNG extends IPSModule
             }
             $this->SetTimerInterval('Refresh', max(10, $this->ReadPropertyInteger('Interval')) * 1000);
             $this->SetStatus(102);
-            $this->UpdateDisplays(true);
+            $this->SyncDisplays();
         } catch (Throwable $e) {
             $this->SetTimerInterval('Refresh', 0);
             $this->Failure($e);
@@ -199,7 +199,7 @@ class AWTRIXNG extends IPSModule
             ],
             'actions' => [
                 ['type' => 'RowLayout', 'items' => [
-                    ['type' => 'Button', 'caption' => 'Anzeigen jetzt senden', 'onClick' => 'AWNG_UpdateDisplays($id, true);'],
+                    ['type' => 'Button', 'caption' => 'Anzeigen jetzt senden', 'onClick' => 'AWNG_SyncDisplays($id);'],
                     ['type' => 'Button', 'caption' => 'Verbindung testen', 'onClick' => 'echo AWNG_TestConnection($id);'],
                     ['type' => 'Button', 'caption' => 'Testnachricht', 'onClick' => 'AWNG_Notify($id, "Hallo von Symcon!", "", 5);']
                 ]],
@@ -440,7 +440,17 @@ class AWTRIXNG extends IPSModule
         }
     }
 
-    public function UpdateDisplays(bool $SyncOrder = false): bool
+    public function UpdateDisplays(): bool
+    {
+        return $this->SendDisplays(false);
+    }
+
+    public function SyncDisplays(): bool
+    {
+        return $this->SendDisplays(true);
+    }
+
+    private function SendDisplays(bool $SyncOrder): bool
     {
         if (!$this->instanceAvailable) {
             return false;

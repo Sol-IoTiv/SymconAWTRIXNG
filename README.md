@@ -27,7 +27,7 @@ Aktueller Entwicklungsstand: **0.18b** auf `dev`. Variablenanzeige, Standardanze
 |---|---|
 | `dev` | Aktuelle Entwicklung und Praxistests |
 | `beta-staging` | Teststand nach ausdrücklicher Freigabe per Pull Request |
-| `main` | Für freigegebene Versionen vorgesehen; derzeit noch Ausgangsstand |
+| `main` | Freigegebener Stand; `0.18b` bleibt als Beta gekennzeichnet |
 
 Neue Änderungen werden nur auf `dev` hochgeladen. Übernahmen nach `beta-staging` oder `main` erfolgen nach Freigabe über Pull Requests. Die Version in `library.json` beschreibt den jeweiligen Modulstand, noch keinen Store-Release.
 
@@ -145,7 +145,7 @@ Bei Verbindungs- oder Konfigurationsfehlern zeigt die Instanz einen Fehlerstatus
 ```php
 // 12345 durch die ID der AWTRIX-NG-Instanz ersetzen.
 AWNG_Notify(12345, 'Waschmaschine fertig!', '', 10);
-AWNG_UpdateDisplays(12345, false);
+AWNG_UpdateDisplays(12345);
 ```
 
 `AWNG_TestConnection(12345)` liefert den Verbindungstest als Text, `AWNG_LoadIcons(12345)` lädt die Icon-Auswahl. Senden und Aktualisieren liefern einen booleschen Erfolgswert.
@@ -177,7 +177,7 @@ Wenn du die Weiterentwicklung unterstützen möchtest, kannst du das gerne tun:
 
 ☕ Vielen Dank für deine Unterstützung!
 
-Bei globalen `AWNG_`-Aufrufen alle Parameter angeben: Symcon übernimmt PHP-Standardwerte nicht in die erzeugten Funktionen. Für reine Wertupdates `AWNG_UpdateDisplays(12345, false)` verwenden.
+Bei globalen `AWNG_`-Aufrufen alle Parameter angeben: Symcon übernimmt PHP-Standardwerte nicht in die erzeugten Funktionen. Für reine Wertupdates `AWNG_UpdateDisplays(12345)` verwenden.
 
 ## Kompakte Konfigurationsübersicht
 

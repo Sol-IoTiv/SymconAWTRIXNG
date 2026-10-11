@@ -157,8 +157,8 @@ Vor dem Wechsel auf eine andere Uhr oder dem Löschen der Instanz alle Anzeigen 
 ```php
 // Instanz-ID anpassen.
 AWNG_Notify(12345, 'Waschmaschine fertig!', '', 10);
-AWNG_UpdateDisplays(12345, false);       // Werte senden
-AWNG_UpdateDisplays(12345, true); // Werte und gespeicherte Reihenfolge senden
+AWNG_UpdateDisplays(12345);       // Werte senden
+AWNG_SyncDisplays(12345); // Werte und gespeicherte Reihenfolge senden
 ```
 
 `AWNG_LoadTransitions(12345)` lädt die Übergangsauswahl. `AWNG_TestConnection(12345)` testet die Verbindung. `AWNG_LoadIcons(12345)` aktualisiert die Icon-Auswahl und lädt das Formular neu. `AWNG_GetIconsURL(12345)` liefert die Adresse der Icon-Verwaltung der Uhr.
@@ -167,7 +167,7 @@ AWNG_UpdateDisplays(12345, true); // Werte und gespeicherte Reihenfolge senden
 
 Den freiwilligen Spendenbutton und QR-Code findest du in der [README](../README.md#entwicklung-unterstützen).
 
-Bei globalen `AWNG_`-Aufrufen alle Parameter angeben: Symcon übernimmt PHP-Standardwerte nicht in die erzeugten Funktionen. Für reine Wertupdates `AWNG_UpdateDisplays(12345, false)` verwenden.
+Bei globalen `AWNG_`-Aufrufen alle Parameter angeben: Symcon übernimmt PHP-Standardwerte nicht in die erzeugten Funktionen. Für reine Wertupdates `AWNG_UpdateDisplays(12345)` verwenden.
 
 ## Kompakte Konfigurationsübersicht
 

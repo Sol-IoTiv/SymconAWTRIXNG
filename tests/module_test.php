@@ -184,7 +184,7 @@ $apps = [
     ['name' => 'external', 'origin' => 'script', 'enabled' => false],
     ['name' => 'ips_12345_second', 'origin' => 'pushed', 'enabled' => true]
 ];
-check($module->UpdateDisplays(true), 'Reordering failed');
+check($module->SyncDisplays(), 'Reordering failed');
 $orderRequest = end($requests);
 check($orderRequest[2]['order'] === ['Time', 'ips_12345_second', 'ips_12345_first', 'external'], 'Order must follow table and preserve external apps');
 check($orderRequest[2]['disabled'] === ['external'], 'External disabled state must be preserved');
@@ -194,32 +194,32 @@ $apps = [];
 check($module->LoadTransitions() === '2 Übergänge geladen.', 'Load device transition choices');
 $module->properties['ManageAppearance'] = true;
 $before = count($requests);
-check($module->UpdateDisplays(true), 'Appearance sync failed');
+check($module->SyncDisplays(), 'Appearance sync failed');
 $patches = array_values(array_filter(array_slice($requests, $before), static function ($r) { return $r[0] === 'PATCH'; }));
 check(count($patches) === 1 && $patches[0][2]['transitionDurationMs'] === 500, 'Milliseconds and settings patch');
 check(!isset($patches[0][2]['brightness']), 'Automatic mode must preserve manual brightness');
 $before = count($requests);
-check($module->UpdateDisplays(true), 'Unchanged settings sync failed');
+check($module->SyncDisplays(), 'Unchanged settings sync failed');
 check(count(array_filter(array_slice($requests, $before), static function ($r) { return $r[0] === 'PATCH'; })) === 0, 'Unchanged settings must not be rewritten');
 $before = count($requests);
 check($module->UpdateDisplays() && count($requests) === $before, 'Timer must not read or write appearance settings');
 $module->properties['AutoBrightness'] = false;
 $module->properties['Brightness'] = 42;
 $module->properties['TransitionDurationMs'] = 0;
-check($module->UpdateDisplays(true) && $settings['brightness'] === 42 && $settings['transitionDurationMs'] === 0, 'Manual brightness and instant transition');
+check($module->SyncDisplays() && $settings['brightness'] === 42 && $settings['transitionDurationMs'] === 0, 'Manual brightness and instant transition');
 $module->properties['AutoBrightness'] = true;
 $capabilities['sensors']['light'] = false;
-check(!$module->UpdateDisplays(true), 'Missing light sensor must reject automatic mode');
+check(!$module->SyncDisplays(), 'Missing light sensor must reject automatic mode');
 $capabilities['sensors']['light'] = true;
 $module->properties['TransitionEffect'] = 'Unsupported';
-check(!$module->UpdateDisplays(true), 'Unsupported transition must fail');
+check(!$module->SyncDisplays(), 'Unsupported transition must fail');
 $module->properties['TransitionEffect'] = 'Fade';
 $module->properties['Brightness'] = 256;
 $before = count($requests);
-check(!$module->UpdateDisplays(true) && count($requests) === $before, 'Invalid settings must fail before requests');
+check(!$module->SyncDisplays() && count($requests) === $before, 'Invalid settings must fail before requests');
 $module->properties['ManageAppearance'] = false;
 $before = count($requests);
-check($module->UpdateDisplays(true), 'Disabled appearance management');
+check($module->SyncDisplays(), 'Disabled appearance management');
 check(count($requests) === $before + 1, 'Disabled management must only read app order');
 // New content types need no variable and preserve the existing app ownership.
 $module->properties['Displays'] = json_encode([['Key' => 'message', 'Type' => 'text', 'Text' => 'Hallo aus Symcon', 'ScrollSpeed' => 80]]);
@@ -261,22 +261,23 @@ $before = count($requests);
 check(!$module->PlaySound('../bad') && count($requests) === $before, 'Invalid sound name rejected');
 $module->properties['ManageAudio'] = true;
 $module->properties['Volume'] = 0;
-check($module->UpdateDisplays(true) && $settings['volume'] === 0, 'Mute master volume');
+check($module->SyncDisplays() && $settings['volume'] === 0, 'Mute master volume');
 $before = count($requests);
-check($module->UpdateDisplays(true), 'Unchanged audio sync');
+check($module->SyncDisplays(), 'Unchanged audio sync');
 check(count(array_filter(array_slice($requests, $before), static function ($r) { return $r[0] === 'PATCH'; })) === 0, 'No repeated volume writes');
 $before = count($requests);
 check($module->UpdateDisplays() && count($requests) === $before, 'Timer must not play sounds or change volume');
 $module->properties['Volume'] = 101;
 $before = count($requests);
-check(!$module->UpdateDisplays(true) && count($requests) === $before, 'Invalid volume rejected');
+check(!$module->SyncDisplays() && count($requests) === $before, 'Invalid volume rejected');
 $capabilities['audio']['rtttl'] = false;
 check(strpos($module->LoadSounds(), 'keine Unterstützung') !== false, 'Unsupported sound hardware reported');
 // Symcon generates global functions without PHP parameter defaults.
-foreach (['UpdateDisplays', 'Notify', 'NotifyWithMelody', 'NotifyWithSound', 'PlaySound'] as $method) {
+foreach (['UpdateDisplays', 'SyncDisplays', 'Notify', 'NotifyWithMelody', 'NotifyWithSound', 'PlaySound'] as $method) {
     $args = array_map(static function ($parameter) { return '$' . $parameter->getName(); }, (new ReflectionMethod(AWTRIXNG::class, $method))->getParameters());
-    eval('function AWNG_' . $method . '($id, ' . implode(', ', $args) . ') { global $module; return $module->' . $method . '(' . implode(', ', $args) . '); }');
+    eval('function AWNG_' . $method . '($id' . ($args ? ', ' : '') . implode(', ', $args) . ') { global $module; return $module->' . $method . '(' . implode(', ', $args) . '); }');
 }
+check((new ReflectionFunction('AWNG_UpdateDisplays'))->getNumberOfRequiredParameters() === 1, 'Existing update global signature must stay compatible');
 $module->properties['ManageAudio'] = false;
 $module->properties['Displays'] = '[]';
 $module->attributes['Managed'] = '{}';

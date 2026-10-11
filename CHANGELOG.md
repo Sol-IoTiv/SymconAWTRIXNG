@@ -64,3 +64,4 @@ Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine S
 - README an aktuellen Entwicklungsstand und vereinbarten Branch-Ablauf angepasst.
 - Ausführliche Anleitung mit Einrichtung, Icon-Regeln, Reihenfolge und Fehlerhilfe ergänzt.
 - Changelog für alle bisherigen Modulstände angelegt.
+- PayPal-Spendenbutton und QR-Code in der README sowie einen Unterstützungslink im Modul ergänzt.

@@ -106,3 +106,7 @@ AWNG_UpdateDisplays(12345, true); // Werte und gespeicherte Reihenfolge senden
 ```
 
 `AWNG_TestConnection(12345)` testet die Verbindung. `AWNG_LoadIcons(12345)` aktualisiert die Icon-Auswahl und lädt das Formular neu. `AWNG_GetIconsURL(12345)` liefert die Adresse der Icon-Verwaltung der Uhr.
+
+## Entwicklung unterstützen
+
+Der Knopf **Entwicklung unterstützen (PayPal)** im Modul öffnet die Spendenseite im Browser. Die Unterstützung ist freiwillig. Den Spendenbutton und QR-Code findest du auch in der [README](../README.md#entwicklung-unterstützen).

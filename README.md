@@ -111,3 +111,13 @@ IP-Symcon ab 7.0 mit PHP/cURL. Verwendet die AWTRIX-NG-API v1: `GET /api/v1/vers
 - [Pushed Apps](https://blueforcer.github.io/awtrix-ng/esp32/guides/pushed-apps/)
 
 Eigenständige Integration; kein offizielles Modul von Symcon, Ulanzi oder Blueforcer. Keine Firmware, fremden Icons oder Zugangsdaten enthalten.
+
+## Entwicklung unterstützen
+
+Wenn du die Weiterentwicklung unterstützen möchtest, kannst du das gerne tun:
+
+[![Spenden mit PayPal](assets/paypal_logo.png)](https://www.paypal.com/donate/?business=PR9P7V7RMFHFQ&no_recurring=0&item_name=Spende+als+Dankesch%C3%B6n+f%C3%BCr+die+Modulentwicklung+Symcon&currency_code=EUR)
+
+![QR-Code zur PayPal-Spende](assets/paypal_qr.png)
+
+☕ Vielen Dank für deine Unterstützung!

@@ -108,23 +108,16 @@ class AWTRIXNG extends IPSModule
                 $displayOptions[] = ['caption' => $key . ' (Anzeige fehlt)', 'value' => $key];
             }
         }
-        $columns = [
-            ['name' => 'Enabled', 'caption' => 'Aktiv', 'width' => '65px', 'add' => true, 'edit' => ['type' => 'CheckBox']],
-            ['name' => 'Key', 'caption' => 'Kennung (Pflichtfeld, eindeutig)', 'width' => '160px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox', 'validate' => '^[A-Za-z0-9_-]{1,16}$']],
-            ['name' => 'VariableID', 'caption' => 'Variable', 'width' => '220px', 'add' => 0, 'edit' => ['type' => 'SelectVariable']],
-            ['name' => 'Prefix', 'caption' => 'Text davor', 'width' => '130px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
-            ['name' => 'Suffix', 'caption' => 'Einheit / Text danach', 'width' => '150px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
-            ['name' => 'Decimals', 'caption' => 'Nachkommastellen', 'width' => '130px', 'add' => 1, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 0, 'maximum' => 6]],
-            ['name' => 'Icon', 'caption' => 'Icon', 'width' => '160px', 'add' => '', 'edit' => ['type' => 'Select', 'options' => $options]],
-            ['name' => 'Duration', 'caption' => 'Dauer (s)', 'width' => '100px', 'add' => 5, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 1, 'maximum' => 300]],
-            ['name' => 'Color', 'caption' => 'Textfarbe', 'width' => '120px', 'add' => 16777215, 'edit' => ['type' => 'SelectColor']],
-            ['name' => 'Type', 'caption' => 'Inhalt', 'width' => '140px', 'add' => 'variable', 'edit' => ['type' => 'Select', 'options' => [
-                ['caption' => 'Variablenwert', 'value' => 'variable'], ['caption' => 'Laufschrift', 'value' => 'text'], ['caption' => 'Countdown (Tage)', 'value' => 'countdown']
-            ]]],
-            ['name' => 'Text', 'caption' => 'Freier Text (nur Laufschrift)', 'width' => '220px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
-            ['name' => 'EndDate', 'caption' => 'Enddatum (JJJJ-MM-TT, nur Countdown)', 'width' => '180px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
-            ['name' => 'ScrollSpeed', 'caption' => 'Laufschrift-Tempo (%)', 'width' => '130px', 'add' => 100, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 1, 'maximum' => 200]]
-        ];
+        $columns = $this->DisplayColumns($options);
+        $displayValues = json_decode($this->ReadPropertyString('Displays'), true) ?: [];
+        foreach ($displayValues as &$displayValue) {
+            $displayValue['Type'] = $displayValue['Type'] ?? 'variable';
+            $date = $displayValue['EndDate'] ?? '';
+            if (is_string($date) && preg_match('/^(\d{4})-(\d{2})-(\d{2})$/D', $date, $parts)) {
+                $displayValue['EndDate'] = json_encode(['year' => (int) $parts[1], 'month' => (int) $parts[2], 'day' => (int) $parts[3]], JSON_THROW_ON_ERROR);
+            }
+        }
+        unset($displayValue);
         return json_encode([
             'elements' => [
                 ['type' => 'Label', 'caption' => 'AWTRIX NG per HTTP – kein MQTT erforderlich.'],
@@ -134,8 +127,8 @@ class AWTRIXNG extends IPSModule
                     ['type' => 'PasswordTextBox', 'name' => 'Password', 'caption' => 'Passwort']
                 ]],
                 ['type' => 'NumberSpinner', 'name' => 'Interval', 'caption' => 'Alle Anzeigen erneut senden (Sekunden)', 'minimum' => 10, 'maximum' => 3600],
-                ['type' => 'Label', 'caption' => 'Zuerst IP übernehmen, dann Icons laden. Inhalt wählen: Variablenwert, Laufschrift oder Countdown. Nur die zum Inhalt passenden Felder ausfüllen. Countdown: Enddatum JJJJ-MM-TT, Einheit z. B. " Tage". Kennung: 1–16 Buchstaben, Ziffern, _ oder -. Leerzeichen vor Einheiten mit eingeben.'],
-                ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen (Reihenfolge per Drag-and-drop ändern, danach übernehmen)', 'rowCount' => 8, 'add' => true, 'delete' => true, 'changeOrder' => true, 'columns' => $columns],
+                ['type' => 'Label', 'caption' => 'Zuerst IP übernehmen, dann Icons laden. Inhalt wählen: Variablenwert, Laufschrift oder Countdown. Nur die zum Inhalt passenden Felder ausfüllen. Countdown: Enddatum im Kalender wählen, Einheit z. B. " Tage". Kennung: 1–16 Buchstaben, Ziffern, _ oder -. Leerzeichen vor Einheiten mit eingeben.'],
+                ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen (Reihenfolge per Drag-and-drop ändern, danach übernehmen)', 'rowCount' => 8, 'add' => true, 'delete' => true, 'changeOrder' => true, 'columns' => $columns, 'loadValuesFromConfiguration' => false, 'values' => $displayValues, 'form' => 'return json_decode(AWNG_UIDisplayForm($id, $Displays["Type"] ?? "variable"), true);'],
                 ['type' => 'ExpansionPanel', 'caption' => 'Icons abhängig vom Wert', 'items' => [
                     ['type' => 'Label', 'caption' => 'Anzeige aus der Liste auswählen. Neue oder geänderte Anzeigen zuerst übernehmen. Es gilt die kleinste passende Obergrenze (Wert kleiner oder gleich). Oberhalb aller Grenzen gilt das normale Icon der Anzeige.'],
                     ['type' => 'List', 'name' => 'IconRules', 'caption' => 'Icon-Regeln', 'rowCount' => 6, 'add' => count($displayOptions) > 0, 'delete' => true, 'columns' => [
@@ -190,6 +183,68 @@ class AWTRIXNG extends IPSModule
                 ['code' => 201, 'icon' => 'error', 'caption' => 'Konfiguration oder Verbindung prüfen – siehe Letzter Fehler']
             ]
         ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    }
+
+    private function DisplayColumns(array $options): array
+    {
+        return [
+            ['name' => 'Enabled', 'caption' => 'Aktiv', 'width' => '65px', 'add' => true, 'edit' => ['type' => 'CheckBox']],
+            ['name' => 'Key', 'caption' => 'Kennung (Pflichtfeld, eindeutig)', 'width' => '160px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox', 'validate' => '^[A-Za-z0-9_-]{1,16}$']],
+            ['name' => 'VariableID', 'caption' => 'Variable', 'width' => '220px', 'add' => 0, 'edit' => ['type' => 'SelectVariable']],
+            ['name' => 'Prefix', 'caption' => 'Text davor', 'width' => '130px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
+            ['name' => 'Suffix', 'caption' => 'Einheit / Text danach', 'width' => '150px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
+            ['name' => 'Decimals', 'caption' => 'Nachkommastellen', 'width' => '130px', 'add' => 1, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 0, 'maximum' => 6]],
+            ['name' => 'Icon', 'caption' => 'Icon', 'width' => '160px', 'add' => '', 'edit' => ['type' => 'Select', 'options' => $options]],
+            ['name' => 'Duration', 'caption' => 'Dauer (s)', 'width' => '100px', 'add' => 5, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 1, 'maximum' => 300]],
+            ['name' => 'Color', 'caption' => 'Textfarbe', 'width' => '120px', 'add' => 16777215, 'edit' => ['type' => 'SelectColor']],
+            ['name' => 'Type', 'caption' => 'Inhalt', 'width' => '140px', 'add' => 'variable', 'edit' => ['type' => 'Select', 'options' => [
+                ['caption' => 'Variablenwert', 'value' => 'variable'], ['caption' => 'Laufschrift', 'value' => 'text'], ['caption' => 'Countdown (Tage)', 'value' => 'countdown']
+            ]]],
+            ['name' => 'Text', 'caption' => 'Freier Text (nur Laufschrift)', 'width' => '220px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
+            ['name' => 'EndDate', 'caption' => 'Enddatum', 'width' => '180px', 'visible' => false, 'save' => true, 'add' => '{"year":0,"month":0,"day":0}', 'edit' => ['type' => 'ValidationTextBox']],
+            ['name' => 'ScrollSpeed', 'caption' => 'Laufschrift-Tempo (%)', 'width' => '130px', 'add' => 100, 'edit' => ['type' => 'NumberSpinner', 'minimum' => 1, 'maximum' => 200]]
+        ];
+    }
+
+    public function UIDisplayForm(string $Type): string
+    {
+        $options = [['caption' => 'Kein Icon', 'value' => '']];
+        foreach (json_decode($this->ReadAttributeString('Icons'), true) ?: [] as $icon) {
+            $options[] = ['caption' => $icon, 'value' => $icon];
+        }
+        $columns = array_column($this->DisplayColumns($options), null, 'name');
+        $form = [];
+        foreach (['Enabled', 'Key', 'Type', 'VariableID', 'Text', 'EndDate', 'ScrollSpeed', 'Prefix', 'Suffix', 'Decimals', 'Icon', 'Duration', 'Color'] as $name) {
+            $element = $columns[$name]['edit'];
+            $element['name'] = $name;
+            $element['caption'] = $columns[$name]['caption'];
+            if ($name === 'Type') {
+                $element['onChange'] = 'AWNG_UIDisplayTypeChanged($id, $Type);';
+            }
+            if ($name === 'EndDate') {
+                $element['type'] = 'SelectDate';
+            }
+            if ($name === 'Text') {
+                $element['caption'] = 'Freier Text';
+            }
+            if (isset($this->DisplayFieldTypes()[$name])) {
+                $element['visible'] = $this->DisplayFieldTypes()[$name] === $Type;
+            }
+            $form[] = $element;
+        }
+        return json_encode($form, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    }
+
+    private function DisplayFieldTypes(): array
+    {
+        return ['VariableID' => 'variable', 'Text' => 'text', 'EndDate' => 'countdown', 'ScrollSpeed' => 'text', 'Decimals' => 'variable'];
+    }
+
+    public function UIDisplayTypeChanged(string $Type): void
+    {
+        foreach ($this->DisplayFieldTypes() as $name => $type) {
+            $this->UpdateFormField($name, 'visible', $Type === $type);
+        }
     }
 
     public function TestConnection(): string
@@ -418,8 +473,24 @@ class AWTRIXNG extends IPSModule
         }
     }
 
-    private function RemainingDays(string $endDate): int
+    private function RemainingDays($endDate): int
     {
+        // SelectDate stores a JSON object; legacy ISO dates remain supported.
+        if (is_string($endDate) && substr(ltrim($endDate), 0, 1) === '{') {
+            $endDate = json_decode($endDate, true, 512, JSON_THROW_ON_ERROR);
+        }
+        if (is_array($endDate)) {
+            $year = $endDate['year'] ?? 0;
+            $month = $endDate['month'] ?? 0;
+            $day = $endDate['day'] ?? 0;
+            if (!is_int($year) || !is_int($month) || !is_int($day) || !checkdate($month, $day, $year)) {
+                throw new InvalidArgumentException('Bitte ein gültiges Enddatum im Kalender auswählen.');
+            }
+            $endDate = sprintf('%04d-%02d-%02d', $year, $month, $day);
+        }
+        if (!is_string($endDate)) {
+            throw new InvalidArgumentException('Bitte ein gültiges Enddatum im Kalender auswählen.');
+        }
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $endDate);
         if (!$date || $date->format('Y-m-d') !== $endDate) {
             throw new InvalidArgumentException('Enddatum als JJJJ-MM-TT eingeben, zum Beispiel 2026-12-24.');

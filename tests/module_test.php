@@ -51,6 +51,7 @@ class IPSModule {
     public $variables = [];
     public $status = 0;
     public $timers = [];
+    public $formUpdates = [];
     public function Create() {}
     public function ApplyChanges() {}
     protected function RegisterPropertyString($name, $value) { $this->properties[$name] = $value; }
@@ -67,6 +68,7 @@ class IPSModule {
     protected function SetValue($name, $value) { $this->variables[$name] = $value; }
     protected function SetStatus($value) { $this->status = $value; }
     protected function ReloadForm() {}
+    protected function UpdateFormField($name, $field, $value) { $this->formUpdates[$name][$field] = $value; }
     protected function GetMessageList() { return []; }
     protected function RegisterMessage($id, $message) {}
     protected function UnregisterMessage($id, $message) {}
@@ -286,4 +288,28 @@ foreach ($form['actions'] as $action) {
     }
 }
 check((new ReflectionFunction('AWNG_Notify'))->getNumberOfRequiredParameters() === 4, 'Existing notification global signature must stay compatible');
+foreach (['variable', 'text', 'countdown'] as $type) {
+    $dialog = json_decode($module->UIDisplayForm($type), true, 512, JSON_THROW_ON_ERROR);
+    check(array_column(array_slice($dialog, 0, 3), 'name') === ['Enabled', 'Key', 'Type'], 'Content selector immediately below key');
+    $fields = array_column($dialog, null, 'name');
+    check($fields['EndDate']['type'] === 'SelectDate', 'Countdown calendar picker');
+    check($fields['VariableID']['visible'] === ($type === 'variable'), 'Variable field visibility');
+    check($fields['Text']['visible'] === ($type === 'text'), 'Text field visibility');
+    check($fields['EndDate']['visible'] === ($type === 'countdown'), 'Calendar field visibility');
+    $module->UIDisplayTypeChanged($type);
+    check($module->formUpdates['EndDate']['visible'] === ($type === 'countdown'), 'Changing content updates current dialog');
+}
+$tomorrow = new DateTimeImmutable('tomorrow');
+$calendar = ['year' => (int) $tomorrow->format('Y'), 'month' => (int) $tomorrow->format('m'), 'day' => (int) $tomorrow->format('d')];
+foreach ([$calendar, json_encode($calendar)] as $dateValue) {
+    $module->properties['Displays'] = json_encode([['Key' => 'calendar', 'Type' => 'countdown', 'EndDate' => $dateValue]]);
+    check($module->UpdateDisplays() && end($requests)[2]['text'] === '1', 'Calendar date countdown');
+}
+$module->properties['Displays'] = json_encode([['Key' => 'legacy', 'Type' => 'countdown', 'EndDate' => '2026-12-24', 'Icon' => 'sun']]);
+$form = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ERROR);
+$converted = $form['elements'][5]['values'][0];
+check(json_decode($converted['EndDate'], true) === ['year' => 2026, 'month' => 12, 'day' => 24], 'Existing ISO date migrates to calendar value');
+check($converted['Icon'] === 'sun', 'Migration preserves other settings');
+$module->properties['Displays'] = json_encode([['Key' => 'calendar', 'Type' => 'countdown', 'EndDate' => '{"year":0,"month":0,"day":0}']]);
+check(!$module->UpdateDisplays(), 'Empty calendar date must be rejected');
 echo "All module tests passed.\n";

@@ -2,6 +2,14 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.13 – Passende Eingaben und Kalender
+
+- Inhalt direkt unter Kennung im Anzeigen-Dialog auswählen.
+- Je nach Inhalt nur Variable, freien Text oder Enddatum anzeigen; Tempo und Nachkommastellen ebenfalls passend einblenden.
+- Enddatum bequem im Kalender auswählen; vorhandene Textdaten übernehmen und weiterhin unterstützen.
+- Eingaben beim Wechsel des Inhaltstyps erhalten. Neue Zeilendialoge setzen ihre Sichtbarkeit jeweils passend zurück.
+- Tests für Dialogaufbau, Umschalten und Kalenderdaten ergänzt.
+
 ## 0.12 – Symcon-Funktionsaufrufe korrigiert
 
 - Refresh-Timer übergibt den Parameter für den Reihenfolgeabgleich ausdrücklich; ArgumentCountError behoben.

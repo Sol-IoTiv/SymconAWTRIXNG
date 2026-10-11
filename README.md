@@ -2,7 +2,7 @@
 
 Mit diesem Modul zeigt eine AWTRIX-NG-Uhr Werte und Meldungen aus IP-Symcon an. Die Verbindung läuft lokal über HTTP; ein MQTT-Broker ist nicht erforderlich. Die Grundfunktionen werden auf einer Ulanzi TC001 im laufenden Betrieb getestet. AWTRIX 3 wird nicht unterstützt.
 
-Aktueller Entwicklungsstand: **0.12** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
+Aktueller Entwicklungsstand: **0.13** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
 
 ## Funktionen
 
@@ -51,7 +51,7 @@ Die Kennung ist im Hinzufügen- und Bearbeiten-Dialog einer Anzeige ein Pflichtf
 
 ## Laufschrift und Countdown
 
-Beide werden als normale Zeilen unter **Anzeigen** angelegt und können gemeinsam mit Variablenwerten sortiert werden. Bestehende Zeilen bleiben Variablenanzeigen.
+Beide werden als normale Zeilen unter **Anzeigen** angelegt und können gemeinsam mit Variablenwerten sortiert werden. Direkt unter **Kennung** steht **Inhalt**. Je nach Auswahl erscheint darunter nur die Variablenauswahl, das freie Textfeld oder der Kalender für das Enddatum. Die übrigen Eingaben sind ausgeblendet; gespeicherte Werte bleiben beim Umschalten erhalten. Tempo ist nur für Laufschrift sichtbar, Nachkommastellen nur für Variablenwerte. Bestehende Zeilen bleiben Variablenanzeigen.
 
 ### Freien Text als Laufschrift anzeigen
 
@@ -67,7 +67,7 @@ Der Text läuft kontinuierlich durch, auch wenn er auf das Display passen würde
 
 1. Eine Anzeige mit eindeutiger Kennung hinzufügen.
 2. Unter **Inhalt** den Typ **Countdown (Tage)** auswählen.
-3. **Enddatum** als `JJJJ-MM-TT` eingeben, zum Beispiel `2026-12-24`.
+3. **Enddatum** im Kalender auswählen. Bereits früher als Text eingetragene Enddaten werden beim Bearbeiten in die Kalenderauswahl übernommen.
 4. Optional Text davor wie `Urlaub in ` und als Einheit ` Tage` eintragen. Icon, Farbe und Dauer nach Wunsch wählen.
 5. **Übernehmen** drücken.
 

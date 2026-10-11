@@ -8,14 +8,18 @@ foreach (['CURLOPT_RETURNTRANSFER', 'CURLOPT_CUSTOMREQUEST', 'CURLOPT_CONNECTTIM
 $requests = [];
 $values = [22180 => 18.4];
 $status = 200;
+$apps = [];
 function curl_init($url) { return (object) ['url' => $url, 'options' => []]; }
 function curl_setopt_array($handle, $options) { $handle->options = $options; }
 function curl_setopt($handle, $key, $value) { $handle->options[$key] = $value; }
 function curl_exec($handle) {
-    global $requests;
+    global $requests, $apps;
     $requests[] = [$handle->options[CURLOPT_CUSTOMREQUEST], $handle->url, isset($handle->options[CURLOPT_POSTFIELDS]) ? json_decode($handle->options[CURLOPT_POSTFIELDS], true) : null];
     if (strpos($handle->url, '/files?') !== false) {
         return '{"files":[{"name":"sun.gif","size":42},{"name":"temp.jpg","size":20}]}';
+    }
+    if (substr($handle->url, -12) === '/api/v1/apps') {
+        return json_encode($apps);
     }
     return '{"ok":true}';
 }
@@ -36,11 +40,13 @@ class IPSModule {
     public function ApplyChanges() {}
     protected function RegisterPropertyString($name, $value) { $this->properties[$name] = $value; }
     protected function RegisterPropertyInteger($name, $value) { $this->properties[$name] = $value; }
+    protected function RegisterPropertyBoolean($name, $value) { $this->properties[$name] = $value; }
     protected function RegisterAttributeString($name, $value) { $this->attributes[$name] = $value; }
     protected function RegisterTimer($name, $value, $script) {}
     protected function RegisterVariableString($ident, $name, $profile, $position) {}
     protected function ReadPropertyString($name) { return $this->properties[$name]; }
     protected function ReadPropertyInteger($name) { return $this->properties[$name]; }
+    protected function ReadPropertyBoolean($name) { return $this->properties[$name]; }
     protected function ReadAttributeString($name) { return $this->attributes[$name]; }
     protected function WriteAttributeString($name, $value) { $this->attributes[$name] = $value; }
     protected function SetValue($name, $value) { $this->variables[$name] = $value; }
@@ -88,6 +94,27 @@ $form = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ER
 check(count($form['elements'][5]['columns'][6]['edit']['options']) === 3, 'Icon selection');
 $module->properties['Host'] = '192.168.98.51/path';
 check(!$module->Notify('Test'), 'Host paths must be rejected');
+$module->properties['Host'] = '192.168.98.51';
+$module->properties['ManageBuiltins'] = true;
+$apps = [
+    ['name' => 'Time', 'origin' => 'builtin', 'enabled' => true],
+    ['name' => 'Date', 'origin' => 'builtin', 'enabled' => false],
+    ['name' => 'Temperature', 'origin' => 'builtin', 'enabled' => true],
+    ['name' => 'Battery', 'origin' => 'script', 'enabled' => true]
+];
+$before = count($requests);
+check($module->UpdateDisplays(), 'Builtin sync failed');
+$new = array_slice($requests, $before);
+check(count($new) === 3, 'Only mismatched builtins should be changed');
+check($new[1][2] === true && strpos($new[1][1], '/Date/enabled') !== false, 'Date should be enabled with JSON true');
+check($new[2][2] === false && strpos($new[2][1], '/Temperature/enabled') !== false, 'Temperature should be disabled with JSON false');
+$apps[1]['enabled'] = true;
+$apps[2]['enabled'] = false;
+$before = count($requests);
+check($module->UpdateDisplays() && count($requests) === $before + 1, 'Unchanged builtins must not be written again');
+$module->properties['ManageBuiltins'] = false;
+$before = count($requests);
+check($module->UpdateDisplays() && count($requests) === $before, 'Disabled management must leave clock alone');
 require __DIR__ . '/../AWTRIXNGDiscovery/module.php';
 $parser = new ReflectionMethod(AWTRIXNGDiscovery::class, 'ParseReply');
 $parser->setAccessible(true);

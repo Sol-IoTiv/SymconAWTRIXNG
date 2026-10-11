@@ -12,6 +12,10 @@ class AWTRIXNG extends IPSModule
         $this->RegisterPropertyString('Password', '');
         $this->RegisterPropertyInteger('Interval', 60);
         $this->RegisterPropertyString('Displays', '[]');
+        $this->RegisterPropertyBoolean('ManageBuiltins', false);
+        foreach (['Time', 'Date', 'Temperature', 'Humidity', 'Battery'] as $name) {
+            $this->RegisterPropertyBoolean('Builtin' . $name, in_array($name, ['Time', 'Date'], true));
+        }
         $this->RegisterAttributeString('Icons', '[]');
         $this->RegisterAttributeString('Managed', '{}');
         $this->RegisterTimer('Refresh', 0, 'AWNG_UpdateDisplays($_IPS["TARGET"]);');
@@ -76,7 +80,16 @@ class AWTRIXNG extends IPSModule
                 ]],
                 ['type' => 'NumberSpinner', 'name' => 'Interval', 'caption' => 'Regelmäßig aktualisieren (Sekunden)', 'minimum' => 10, 'maximum' => 3600],
                 ['type' => 'Label', 'caption' => 'Zuerst IP übernehmen, dann Icons laden. Kennung: 1–16 Buchstaben, Ziffern, _ oder -. Einheit inklusive Leerzeichen eingeben, z. B. " °C".'],
-                ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen', 'rowCount' => 8, 'add' => true, 'delete' => true, 'columns' => $columns]
+                ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen', 'rowCount' => 8, 'add' => true, 'delete' => true, 'columns' => $columns],
+                ['type' => 'ExpansionPanel', 'caption' => 'Standardanzeigen der Uhr', 'items' => [
+                    ['type' => 'CheckBox', 'name' => 'ManageBuiltins', 'caption' => 'Standardanzeigen über Symcon steuern'],
+                    ['type' => 'Label', 'caption' => 'Bei aktivierter Steuerung erscheinen nur angehakte Standardanzeigen. Ohne Steuerung bleiben die Einstellungen auf der Uhr erhalten.'],
+                    ['type' => 'CheckBox', 'name' => 'BuiltinTime', 'caption' => 'Uhrzeit'],
+                    ['type' => 'CheckBox', 'name' => 'BuiltinDate', 'caption' => 'Datum'],
+                    ['type' => 'CheckBox', 'name' => 'BuiltinTemperature', 'caption' => 'Gerätetemperatur'],
+                    ['type' => 'CheckBox', 'name' => 'BuiltinHumidity', 'caption' => 'Luftfeuchtigkeit des Geräts'],
+                    ['type' => 'CheckBox', 'name' => 'BuiltinBattery', 'caption' => 'Batteriestand der Uhr']
+                ]]
             ],
             'actions' => [
                 ['type' => 'Button', 'caption' => 'Verbindung testen', 'onClick' => 'echo AWNG_TestConnection($id);'],
@@ -138,6 +151,7 @@ class AWTRIXNG extends IPSModule
         try {
             $base = $this->BaseURL();
             $rows = $this->Rows();
+            $this->SyncBuiltins();
             // Ownership is scoped to the host: never delete names on another clock.
             $all = json_decode($this->ReadAttributeString('Managed'), true) ?: [];
             $managed = $all[$base] ?? [];
@@ -241,7 +255,29 @@ class AWTRIXNG extends IPSModule
         return 'http://' . strtolower($host);
     }
 
-    private function Request(string $method, string $path, ?array $payload = null, bool $allowMissing = false): string
+    private function SyncBuiltins(): void
+    {
+        if (!$this->ReadPropertyBoolean('ManageBuiltins')) {
+            return;
+        }
+        $apps = json_decode($this->Request('GET', '/api/v1/apps'), true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($apps)) {
+            throw new RuntimeException('Ungültige App-Liste von der Uhr.');
+        }
+        foreach ($apps as $app) {
+            $name = $app['name'] ?? '';
+            if (($app['origin'] ?? '') !== 'builtin' || !in_array($name, ['Time', 'Date', 'Temperature', 'Humidity', 'Battery'], true)) {
+                continue;
+            }
+            $enabled = $this->ReadPropertyBoolean('Builtin' . $name);
+            // Avoid repeated writes to the clock's persistent settings.
+            if (($app['enabled'] ?? null) !== $enabled) {
+                $this->Request('PUT', '/api/v1/apps/' . rawurlencode($name) . '/enabled', $enabled);
+            }
+        }
+    }
+
+    private function Request(string $method, string $path, $payload = null, bool $allowMissing = false): string
     {
         $handle = curl_init($this->BaseURL() . $path);
         curl_setopt_array($handle, [

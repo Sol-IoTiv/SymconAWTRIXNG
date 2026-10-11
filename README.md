@@ -24,6 +24,12 @@ Beispiel: Variable `22180`, Kennung `aussen`, Nachkommastellen `1`, Einheit ` °
 
 ## Verhalten
 
+### Standardanzeigen auswählen
+
+Im Abschnitt **Standardanzeigen der Uhr** die Option **Standardanzeigen über Symcon steuern** aktivieren. Anschließend Uhrzeit, Datum, Gerätetemperatur, Luftfeuchtigkeit und Batteriestand einzeln anhaken und **Übernehmen** drücken. Beispiel: Nur Uhrzeit anhaken, um die Uhrzeit zusammen mit den eigenen Symcon-Anzeigen zu zeigen. Uhrzeit und Datum anhaken, um beide zu behalten. Alle fünf abwählen, um ausschließlich eigene Anzeigen zu verwenden.
+
+Die Steuerung ist nach Installation und Aktualisierung zunächst ausgeschaltet. Dann bleiben die Einstellungen der Uhr unverändert. Wird die Steuerung später ausgeschaltet, bleiben die zuletzt gesetzten Zustände auf der Uhr bestehen. Bei aktiver Steuerung gleicht das Modul regelmäßig ab; nur abweichende Schalter werden geschrieben. Es berücksichtigt nur vorhandene eingebaute Apps, keine fremden Skripte oder zusätzlichen Anzeigen. Die Einstellungen werden von AWTRIX über Neustarts hinweg gespeichert.
+
 Jede aktive Zeile erzeugt eine eigene Pushed App. Namen beginnen mit `ips_<InstanzID>_`; die Kennung muss innerhalb der Instanz eindeutig sein. Bestehende Uhr-Apps werden nicht überschrieben. Neue Anzeigen werden in der Reihenfolge der Tabelle angelegt; nachträgliches Umsortieren der Tabelle ändert die Rotation auf der Uhr noch nicht.
 
 Aktualisiert wird bei Wertänderungen, beim Übernehmen und regelmäßig (Standard 60 Sekunden). Damit erscheinen Anzeigen nach einem Neustart der Uhr erneut. Nach drei Aktualisierungsintervallen ohne erfolgreiche Übertragung markiert NG den Wert als veraltet. Deaktivierte oder entfernte Zeilen werden beim nächsten erfolgreichen Abgleich von der Uhr gelöscht. Nur vom Modul erfasste eigene Namen werden gelöscht; ein Hostwechsel löscht keine Anzeigen auf der bisherigen Uhr. Vor Hostwechsel oder Löschen der Instanz die Zeilen deaktivieren und erfolgreich synchronisieren, wenn die Anzeigen dort entfernt werden sollen.

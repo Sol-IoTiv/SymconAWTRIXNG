@@ -2,6 +2,11 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.19b – Aktualisierung bestehender Instanzen reparieren
+
+- Versand bei späteren PHP-Aufrufen ohne erneutes Create nicht mehr durch voreingestellte Sperrflags abbrechen.
+- Manuelles Senden, Timer und Wertänderungen an rekonstruierten Modulobjekten testen; Schutz nach Destroy bleibt bestehen.
+
 ## Korrekturen zu 0.18b
 
 - Bestehende Skriptaufrufe mit `AWNG_UpdateDisplays(InstanzID)` bleiben kompatibel.

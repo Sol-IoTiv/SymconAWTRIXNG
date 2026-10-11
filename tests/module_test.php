@@ -93,6 +93,11 @@ $status = 200;
 check($module->LoadIcons() === '2 Icons geladen.', 'Icon loading');
 $form = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ERROR);
 check(count($form['elements'][5]['columns'][6]['edit']['options']) === 3, 'Icon selection');
+$keyPattern = '/' . $form['elements'][5]['columns'][1]['edit']['validate'] . '/D';
+foreach (['', ' ', 'mit leerzeichen', 'ä', str_repeat('a', 17)] as $invalidKey) {
+    check(preg_match($keyPattern, $invalidKey) === 0, 'Invalid key must be rejected by form');
+}
+check(preg_match($keyPattern, 'pv_akku-1') === 1, 'Valid key must be accepted by form');
 $module->properties['Host'] = '192.168.98.51/path';
 check(!$module->Notify('Test'), 'Host paths must be rejected');
 $module->properties['Host'] = '192.168.98.51';

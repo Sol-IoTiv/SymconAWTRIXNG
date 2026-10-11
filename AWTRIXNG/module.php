@@ -62,7 +62,7 @@ class AWTRIXNG extends IPSModule
         }
         $columns = [
             ['name' => 'Enabled', 'caption' => 'Aktiv', 'width' => '65px', 'add' => true, 'edit' => ['type' => 'CheckBox']],
-            ['name' => 'Key', 'caption' => 'Kennung (eindeutig)', 'width' => '160px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
+            ['name' => 'Key', 'caption' => 'Kennung (Pflichtfeld, eindeutig)', 'width' => '160px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox', 'validate' => '^[A-Za-z0-9_-]{1,16}$']],
             ['name' => 'VariableID', 'caption' => 'Variable', 'width' => '220px', 'add' => 0, 'edit' => ['type' => 'SelectVariable']],
             ['name' => 'Prefix', 'caption' => 'Text davor', 'width' => '130px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
             ['name' => 'Suffix', 'caption' => 'Einheit / Text danach', 'width' => '150px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
@@ -85,7 +85,7 @@ class AWTRIXNG extends IPSModule
                 ['type' => 'ExpansionPanel', 'caption' => 'Icons abhängig vom Wert', 'items' => [
                     ['type' => 'Label', 'caption' => 'Kennung wie in der Anzeigenliste. Es gilt die kleinste passende Obergrenze (Wert kleiner oder gleich). Oberhalb aller Grenzen gilt das normale Icon der Anzeige. Ohne Regeln bleibt das Icon fest.'],
                     ['type' => 'List', 'name' => 'IconRules', 'caption' => 'Icon-Regeln', 'rowCount' => 6, 'add' => true, 'delete' => true, 'columns' => [
-                        ['name' => 'Key', 'caption' => 'Anzeigekennung', 'width' => '200px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox']],
+                        ['name' => 'Key', 'caption' => 'Anzeigekennung (Pflichtfeld)', 'width' => '200px', 'add' => '', 'edit' => ['type' => 'ValidationTextBox', 'validate' => '^[A-Za-z0-9_-]{1,16}$']],
                         ['name' => 'Maximum', 'caption' => 'Wert bis einschließlich', 'width' => '180px', 'add' => 0, 'edit' => ['type' => 'NumberSpinner', 'digits' => 3]],
                         ['name' => 'Icon', 'caption' => 'Icon', 'width' => '200px', 'add' => '', 'edit' => ['type' => 'Select', 'options' => $options]]
                     ]]

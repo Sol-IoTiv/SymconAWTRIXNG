@@ -112,18 +112,18 @@ $status = 200;
 check($module->LoadIcons() === '2 Icons geladen.', 'Icon loading');
 $module->properties['Displays'] = json_encode([$row]);
 $form = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ERROR);
-check(count(array_column($form['elements'][5]['columns'], null, 'name')['Icon']['edit']['options']) === 3, 'Icon selection');
-$keyPattern = '/' . $form['elements'][5]['columns'][1]['edit']['validate'] . '/D';
+check(count(array_column($form['elements'][4]['columns'], null, 'name')['Icon']['edit']['options']) === 3, 'Icon selection');
+$keyPattern = '/' . $form['elements'][4]['columns'][1]['edit']['validate'] . '/D';
 foreach (['', ' ', 'mit leerzeichen', 'ä', str_repeat('a', 17)] as $invalidKey) {
     check(preg_match($keyPattern, $invalidKey) === 0, 'Invalid key must be rejected by form');
 }
 check(preg_match($keyPattern, 'pv_akku-1') === 1, 'Valid key must be accepted by form');
-$ruleSelect = $form['elements'][6]['items'][1]['columns'][0]['edit'];
+$ruleSelect = $form['elements'][5]['items'][1]['columns'][0]['edit'];
 check($ruleSelect['type'] === 'Select', 'Icon rule display must be a dropdown');
 check($ruleSelect['options'] === [['caption' => 'aussen', 'value' => 'aussen']], 'Dropdown must list saved displays');
 $module->properties['IconRules'] = '[{"Key":"removed","Maximum":0,"Icon":""}]';
 $orphanForm = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ERROR);
-check($orphanForm['elements'][6]['items'][1]['columns'][0]['edit']['options'][1]['caption'] === 'removed (Anzeige fehlt)', 'Preserve missing display references');
+check($orphanForm['elements'][5]['items'][1]['columns'][0]['edit']['options'][1]['caption'] === 'removed (Anzeige fehlt)', 'Preserve missing display references');
 $module->properties['IconRules'] = '[]';
 $module->properties['Displays'] = '[]';
 $module->properties['Host'] = '192.168.98.51/path';
@@ -317,7 +317,7 @@ foreach ([$calendar, json_encode($calendar)] as $dateValue) {
 }
 $module->properties['Displays'] = json_encode([['Key' => 'legacy', 'Type' => 'countdown', 'EndDate' => '2026-12-24', 'Icon' => 'sun']]);
 $form = json_decode($module->GetConfigurationForm(), true, 512, JSON_THROW_ON_ERROR);
-$converted = $form['elements'][5]['values'][0];
+$converted = $form['elements'][4]['values'][0];
 check(json_decode($converted['EndDate'], true) === ['year' => 2026, 'month' => 12, 'day' => 24], 'Existing ISO date migrates to calendar value');
 check($converted['Icon'] === 'sun', 'Migration preserves other settings');
 $module->properties['Displays'] = json_encode([['Key' => 'calendar', 'Type' => 'countdown', 'EndDate' => '{"year":0,"month":0,"day":0}']]);

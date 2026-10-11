@@ -152,12 +152,14 @@ class AWTRIXNG extends IPSModule
         return json_encode([
             'elements' => [
                 ['type' => 'Label', 'caption' => 'AWTRIX NG per HTTP – kein MQTT erforderlich.'],
-                ['type' => 'ValidationTextBox', 'name' => 'Host', 'caption' => 'IP-Adresse oder Hostname der Uhr'],
+                ['type' => 'RowLayout', 'items' => [
+                    ['type' => 'ValidationTextBox', 'name' => 'Host', 'caption' => 'IP-Adresse oder Hostname der Uhr'],
+                    ['type' => 'NumberSpinner', 'name' => 'Interval', 'caption' => 'Alle Anzeigen erneut senden (Sekunden)', 'minimum' => 10, 'maximum' => 3600]
+                ]],
                 ['type' => 'ExpansionPanel', 'caption' => 'Anmeldung (nur bei aktiviertem Login auf der Uhr)', 'items' => [
                     ['type' => 'ValidationTextBox', 'name' => 'Username', 'caption' => 'Benutzername'],
                     ['type' => 'PasswordTextBox', 'name' => 'Password', 'caption' => 'Passwort']
                 ]],
-                ['type' => 'NumberSpinner', 'name' => 'Interval', 'caption' => 'Alle Anzeigen erneut senden (Sekunden)', 'minimum' => 10, 'maximum' => 3600],
                 ['type' => 'Label', 'caption' => 'Anzeige hinzufügen, Inhalt auswählen und übernehmen. Reihenfolge per Drag-and-drop ändern. Details über das Zahnrad bearbeiten.'],
                 ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen (Reihenfolge per Drag-and-drop ändern, danach übernehmen)', 'rowCount' => 8, 'add' => true, 'delete' => true, 'changeOrder' => true, 'columns' => $columns, 'loadValuesFromConfiguration' => false, 'values' => $displayValues, 'form' => 'return json_decode(AWNG_UIDisplayForm($id, $Displays["Type"] ?? "variable"), true);'],
                 ['type' => 'ExpansionPanel', 'caption' => 'Icons abhängig vom Wert', 'items' => [

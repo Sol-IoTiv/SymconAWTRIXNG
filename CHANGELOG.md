@@ -2,6 +2,11 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.17 – Verbindung kompakter anordnen
+
+- IP-Adresse und zusätzliches Sendeintervall nebeneinander anzeigen.
+- Optionale Anmeldung darunter weiterhin einklappbar anbieten.
+
 ## 0.16 – Aktualisierung beim Entladen absichern
 
 - Wertänderungen während Konfigurationsübernahme und nach Destroy nicht verarbeiten.

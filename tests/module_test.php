@@ -312,4 +312,17 @@ check(json_decode($converted['EndDate'], true) === ['year' => 2026, 'month' => 1
 check($converted['Icon'] === 'sun', 'Migration preserves other settings');
 $module->properties['Displays'] = json_encode([['Key' => 'calendar', 'Type' => 'countdown', 'EndDate' => '{"year":0,"month":0,"day":0}']]);
 check(!$module->UpdateDisplays(), 'Empty calendar date must be rejected');
+// Check the distributed tree, ignoring local empty/ignored directories.
+$root = dirname(__DIR__);
+$files = [];
+exec('git -C ' . escapeshellarg($root) . ' ls-files --cached --others --exclude-standard', $files, $gitResult);
+check($gitResult === 0, 'Repository structure inventory failed');
+$ignoredFolders = ['libs', 'docs', 'imgs', 'tests', 'actions'];
+foreach ($files as $file) {
+    $parts = explode('/', $file);
+    if (count($parts) < 2 || $parts[0][0] === '.' || in_array($parts[0], $ignoredFolders, true) || !is_file($root . '/' . $file)) {
+        continue;
+    }
+    check(is_file($root . '/' . $parts[0] . '/module.json'), 'Invalid library folder: ' . $parts[0]);
+}
 echo "All module tests passed.\n";

@@ -2,6 +2,12 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.14 – Bibliotheksstruktur korrigiert
+
+- Bilder von assets nach imgs verschoben. Symcon erkennt imgs als Bilderordner und verlangt dort keine module.json.
+- Bildverweise in der README angepasst.
+- Strukturprüfung für alle versionierten Hauptordner ergänzt, um ungültige Modulordner künftig zu erkennen.
+
 ## 0.13 – Passende Eingaben und Kalender
 
 - Inhalt direkt unter Kennung im Anzeigen-Dialog auswählen.

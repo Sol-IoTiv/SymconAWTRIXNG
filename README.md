@@ -2,7 +2,7 @@
 
 Mit diesem Modul zeigt eine AWTRIX-NG-Uhr Werte und Meldungen aus IP-Symcon an. Die Verbindung läuft lokal über HTTP; ein MQTT-Broker ist nicht erforderlich. Die Grundfunktionen werden auf einer Ulanzi TC001 im laufenden Betrieb getestet. AWTRIX 3 wird nicht unterstützt.
 
-Aktueller Entwicklungsstand: **0.13** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
+Aktueller Entwicklungsstand: **0.14** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
 
 ## Funktionen
 
@@ -171,9 +171,9 @@ Eigenständige Integration; kein offizielles Modul von Symcon, Ulanzi oder Bluef
 
 Wenn du die Weiterentwicklung unterstützen möchtest, kannst du das gerne tun:
 
-[![Spenden mit PayPal](assets/paypal_logo.png)](https://www.paypal.com/donate/?business=PR9P7V7RMFHFQ&no_recurring=0&item_name=Spende+als+Dankesch%C3%B6n+f%C3%BCr+die+Modulentwicklung+Symcon&currency_code=EUR)
+[![Spenden mit PayPal](imgs/paypal_logo.png)](https://www.paypal.com/donate/?business=PR9P7V7RMFHFQ&no_recurring=0&item_name=Spende+als+Dankesch%C3%B6n+f%C3%BCr+die+Modulentwicklung+Symcon&currency_code=EUR)
 
-![QR-Code zur PayPal-Spende](assets/paypal_qr.png)
+![QR-Code zur PayPal-Spende](imgs/paypal_qr.png)
 
 ☕ Vielen Dank für deine Unterstützung!
 

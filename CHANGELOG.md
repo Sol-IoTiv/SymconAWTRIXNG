@@ -2,6 +2,11 @@
 
 Alle Einträge beschreiben Entwicklungsstände. Ein Upload auf `dev` ist keine Stable-Freigabe. Datum: 11. Oktober 2026.
 
+## 0.10 – Formular aufräumen
+
+- PayPal-Knopf aus dem Modulformular entfernt; Unterstützung bleibt über die README möglich.
+- Aktualisierungsintervall als „Alle Anzeigen erneut senden (Sekunden)“ verständlicher benannt und in der Anleitung erklärt.
+
 ## 0.9 – Übergänge und Helligkeit
 
 - Unterstützte Übergänge direkt von der konfigurierten Uhr laden und auswählen.

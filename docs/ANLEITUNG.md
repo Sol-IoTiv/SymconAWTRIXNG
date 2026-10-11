@@ -89,7 +89,7 @@ Die Einstellungen gelten für alle Anzeigen auf der Uhr. Nur geänderte Werte we
 
 ## 8. Aktualisierung und Fehlerhilfe
 
-Werte werden bei Änderungen, beim Übernehmen und regelmäßig übertragen. Standardintervall: 60 Sekunden. Nach einem Uhrneustart erscheinen die Anzeigen bei der nächsten Übertragung erneut. Nach drei Intervallen ohne Aktualisierung markiert AWTRIX den Wert als veraltet. Das erkennt fehlende Übertragung, nicht einen ausgefallenen Sensor, dessen Wert in Symcon unverändert bleibt.
+Werte werden bei Änderungen, beim Übernehmen und regelmäßig übertragen. Das Feld **Alle Anzeigen erneut senden (Sekunden)** legt das zusätzliche Sendeintervall fest, standardmäßig 60 Sekunden. Wertänderungen werden unabhängig davon sofort gesendet. Die Anzeigedauer je Eintrag wird separat in der Anzeigenliste eingestellt. Nach einem Uhrneustart erscheinen die Anzeigen bei der nächsten Übertragung erneut. Nach drei Intervallen ohne Aktualisierung markiert AWTRIX den Wert als veraltet. Das erkennt fehlende Übertragung, nicht einen ausgefallenen Sensor, dessen Wert in Symcon unverändert bleibt.
 
 | Problem | Prüfen |
 |---|---|
@@ -116,4 +116,4 @@ AWNG_UpdateDisplays(12345, true); // Werte und gespeicherte Reihenfolge senden
 
 ## Entwicklung unterstützen
 
-Der Knopf **Entwicklung unterstützen (PayPal)** im Modul öffnet die Spendenseite im Browser. Die Unterstützung ist freiwillig. Den Spendenbutton und QR-Code findest du auch in der [README](../README.md#entwicklung-unterstützen).
+Den freiwilligen Spendenbutton und QR-Code findest du in der [README](../README.md#entwicklung-unterstützen).

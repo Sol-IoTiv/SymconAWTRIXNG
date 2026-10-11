@@ -2,7 +2,7 @@
 
 Mit diesem Modul zeigt eine AWTRIX-NG-Uhr Werte und Meldungen aus IP-Symcon an. Die Verbindung läuft lokal über HTTP; ein MQTT-Broker ist nicht erforderlich. Die Grundfunktionen werden auf einer Ulanzi TC001 im laufenden Betrieb getestet. AWTRIX 3 wird nicht unterstützt.
 
-Aktueller Entwicklungsstand: **0.9** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
+Aktueller Entwicklungsstand: **0.10** auf `dev`. Variablenanzeige, Standardanzeigen, Galerie-Zugang und Reihenfolge wurden im Praxistest bestätigt. PHP-Syntaxprüfung und lokale Modultests mit nachgebildeter Symcon- und HTTP-Umgebung bestehen. Die neuen Übergangs- und Helligkeitsoptionen müssen noch an der Uhr geprüft werden. Es gibt noch keinen freigegebenen Stable-Release.
 
 ## Funktionen
 

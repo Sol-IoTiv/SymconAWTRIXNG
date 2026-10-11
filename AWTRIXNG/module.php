@@ -114,7 +114,7 @@ class AWTRIXNG extends IPSModule
                     ['type' => 'ValidationTextBox', 'name' => 'Username', 'caption' => 'Benutzername'],
                     ['type' => 'PasswordTextBox', 'name' => 'Password', 'caption' => 'Passwort']
                 ]],
-                ['type' => 'NumberSpinner', 'name' => 'Interval', 'caption' => 'Regelmäßig aktualisieren (Sekunden)', 'minimum' => 10, 'maximum' => 3600],
+                ['type' => 'NumberSpinner', 'name' => 'Interval', 'caption' => 'Alle Anzeigen erneut senden (Sekunden)', 'minimum' => 10, 'maximum' => 3600],
                 ['type' => 'Label', 'caption' => 'Zuerst IP übernehmen, dann Icons laden. Kennung: 1–16 Buchstaben, Ziffern, _ oder -. Einheit inklusive Leerzeichen eingeben, z. B. " °C".'],
                 ['type' => 'List', 'name' => 'Displays', 'caption' => 'Anzeigen (Reihenfolge per Drag-and-drop ändern, danach übernehmen)', 'rowCount' => 8, 'add' => true, 'delete' => true, 'changeOrder' => true, 'columns' => $columns],
                 ['type' => 'ExpansionPanel', 'caption' => 'Icons abhängig vom Wert', 'items' => [
@@ -154,7 +154,6 @@ class AWTRIXNG extends IPSModule
                 ['type' => 'Button', 'caption' => 'Icons von Uhr laden', 'onClick' => 'echo AWNG_LoadIcons($id);'],
                 ['type' => 'Button', 'caption' => 'Testnachricht', 'onClick' => 'AWNG_Notify($id, "Hallo von Symcon!", "", 5);'],
                 ['type' => 'Button', 'caption' => 'Anzeigen jetzt senden', 'onClick' => 'AWNG_UpdateDisplays($id, true);'],
-                ['type' => 'Button', 'caption' => 'Entwicklung unterstützen (PayPal)', 'link' => true, 'onClick' => 'echo "https://www.paypal.com/donate/?business=PR9P7V7RMFHFQ&no_recurring=0&item_name=Spende+als+Dankesch%C3%B6n+f%C3%BCr+die+Modulentwicklung+Symcon&currency_code=EUR";']
             ],
             'status' => [
                 ['code' => 102, 'icon' => 'active', 'caption' => 'Bereit'],
